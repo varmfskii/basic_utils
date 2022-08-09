@@ -14,7 +14,7 @@ SEP = 8
 
 class Parser:
 
-    def __init__(self, keywords, remarks):
+    def __init__(self, keywords, remarks, data=None):
         self.kw2code = {}
         self.code2kw = {}
         self.regexs = [
@@ -35,6 +35,9 @@ class Parser:
         self.pos = 0
         self.line_len = 0
         self.full_parse = []
+        if data is not None:
+            for line in data.split('\n'):
+                self.parse_line(line)
 
     def matcher(self, regexp, string):
         match = regexp.match(string)
