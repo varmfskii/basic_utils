@@ -7,6 +7,10 @@ from coco_util import tokenize_file
 
 def usage():
     sys.stderr.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n')
+    sys.stderr.write('\t-c\n')
+    sys.stderr.write('\t--cassette\t\t\tcasette file\n')
+    sys.stderr.write('\t-d\n')
+    sys.stderr.write('\t--disk\t\t\tdisk file (default)\n')
     sys.stderr.write('\t-h\n')
     sys.stderr.write('\t--help\t\t\tthis help\n')
     sys.stderr.write('\t-i<iname>\n')
@@ -17,8 +21,10 @@ def usage():
     sys.stderr.write('\t--whitespace\t\tpreserve whitespace\n')
 
 
+shortopts = 'cdhi:o:w'
+longopts = ["cassette", "disk", "input=", "output=", "whitespace"]
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'hi:o:w', ["input=", "output=", "whitespace"])
+    opts, args = getopt.getopt(sys.argv[1:], shortopts, longopts)
 except getopt.GetoptError as err:
     print(err)
     usage()
@@ -27,9 +33,14 @@ except getopt.GetoptError as err:
 iname = None
 oname = None
 ws = False
+disk = True
 
 for o, a in opts:
-    if o in ["-h", "--help:"]:
+    if o in ["-c", "--casette"]:
+        disk = False
+    elif o in ["-d", "--disk"]:
+        disk = True
+    elif o in ["-h", "--help:"]:
         usage()
         sys.exit(0)
     elif o in ["-i", "--input"]:
@@ -60,4 +71,4 @@ if len(args) != 0:
     sys.exit(2)
 
 for fname in sys.argv[1:]:
-    tokenize_file(iname, oname, ws=ws)
+    tokenize_file(iname, oname, ws=ws, disk=disk)

@@ -23,24 +23,24 @@ def tokenize_line(line):
     return tokens
 
 
-def tokenize(data, ws=False):
+def tokenize(data, ws=False, disk=True):
     pp = parser.Parser(keywords, remarks, data)
     if ws:
         parsed = pp.full_parse
     else:
         parsed = pp.no_ws()
-    tokenized = [255, 0, 0]
+    tokenized = []
     address = 0x2601
     for line in parsed:
         line_tokens = tokenize_line(line)
         address += 2 + len(line_tokens)
         tokenized += [address // 256, address & 0xff] + line_tokens
     tokenized += [0, 0]
-    val = len(tokenized) - 3
-    tokenized[1] = val // 256
-    tokenized[2] = val & 0xff
+    if disk:
+        val = len(tokenized)
+        tokenized = [255, val // 256, val & 0xff] + tokenized
     return bytearray(tokenized)
 
 
-def tokenize_file(iname, oname, ws=False):
-    open(oname, 'wb').write(tokenize(open(iname, 'r').read(), ws=ws))
+def tokenize_file(iname, oname, ws=False, disk=True):
+    open(oname, 'wb').write(tokenize(open(iname, 'r').read(), ws=ws, disk=disk))
