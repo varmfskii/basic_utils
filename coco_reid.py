@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-import getopt
 import sys
 
+import coco_util as cu
 import parser
-from coco_sdecb import keywords, remarks
-from coco_util import getids, getidtype
 
 
 class IDError(RuntimeError):
@@ -32,7 +30,7 @@ def getidmap(oldids, pp):
     newid = ''
     for oldid in oldids:
         newid = nextid(newid)
-        while newid in pp.kwtocode.keys():
+        while newid in pp.kw2code.keys():
             newid = nextid(newid)
         newids[oldid] = newid
     return newids
@@ -40,69 +38,29 @@ def getidmap(oldids, pp):
 
 def usage():
     sys.stderr.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n')
-    sys.stderr.write('\t-h\n')
-    sys.stderr.write('\t--help\t\t\tthis help\n')
-    sys.stderr.write('\t-i<iname>\n')
-    sys.stderr.write('\t--input=<iname>\t\tinput file\n')
-    sys.stderr.write('\t-o<oname>\n')
-    sys.stderr.write('\t--output=<oname>\toutput file\n')
+    sys.stderr.write('\t-h\t--help\t\tthis help\n')
+    sys.stderr.write('\t-i<n>\t--input=<file>\tinput file\n')
+    sys.stderr.write('\t-o<n>\t--output=<file>\toutput file\n')
 
 
-shortopts = 'hi:o:'
-longopts = ["help", "input=", "output=", "start="]
-try:
-    opts, args = getopt.getopt(sys.argv[1:], shortopts, longopts)
-except getopt.GetoptError as err:
-    print(err)
-    usage()
-    sys.exit(2)
-
-iname = None
-oname = None
-start = 10
-interval = 10
+shortopts = ''
+longopts = []
+iname, oname, opts = cu.options(sys.argv[1:], '', [], usage, 'reid')
 
 for o, a in opts:
-    if o in ["-h", "--help:"]:
-        usage()
-        sys.exit(0)
-    elif o in ["-i", "--input"]:
-        iname = a
-    elif o in ["-o", "--output"]:
-        oname = a
-    else:
-        assert False, "unhandled option"
+    assert False, "unhandled option"
 
-if iname is None:
-    if len(args) == 0:
-        usage()
-        sys.exit(2)
-    iname = args[0]
-    args = args[1:]
-
-if oname is None:
-    if len(args) == 0:
-        oname = f'{iname}.reid'
-    else:
-        oname = args[0]
-        args = args[1:]
-
-if len(args) != 0:
-    usage()
-    sys.exit(2)
-
-pp = parser.Parser(keywords, remarks, open(iname, 'r').read())
-oldids = getids(pp)
+pp = parser.Parser(cu.keywords, cu.remarks, open(iname, 'r').read())
+oldids = cu.getids(pp)
 mymap = {}
 for key in oldids.keys():
     mymap[key] = getidmap(oldids[key], pp)
 
 data = pp.no_ws()
 
-print(mymap)
 for lix, line in enumerate(data):
     for tix, token in enumerate(line):
         if token[0] == parser.ID:
-            data[lix][tix] = (parser.ID, mymap[getidtype(tix, line)][token[1]])
+            data[lix][tix] = (parser.ID, mymap[cu.getidtype(tix, line)][token[1].upper()])
 
 open(oname, 'w').write(pp.deparse(data))

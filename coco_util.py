@@ -1,9 +1,83 @@
+import getopt
+import sys
+
+import coco_cb as cb
+import coco_decb as decb
+import coco_ecb as ecb
+import coco_sdecb as sdecb
+import coco_secb as secb
 import parser
-from coco_sdecb import keywords, remarks
+
+keywords = sdecb.keywords
+remarks = sdecb.remarks
 
 
 class LineNumberError(RuntimeError):
     pass
+
+
+def options(args, sopts, lopts, usage, ext):
+    global keywords
+    global remarks
+
+    short = "hi:o:" + sopts
+    long = ["cb", "ecb", "secb", "decb", "sdecb", "help", "input=", "output="] + lopts
+    try:
+        opts, args = getopt.getopt(args, short, long)
+    except getopt.GetoptError as err:
+        print(err)
+        usage()
+        sys.exit(2)
+
+    unused = []
+    iname = None
+    oname = None
+
+    for o, a in opts:
+        if o in ["-h", "--help:"]:
+            usage()
+            sys.exit(0)
+        elif o in ["-i", "--input"]:
+            iname = a
+        elif o in ["-o", "--output"]:
+            oname = a
+        elif o == "--cb":
+            keywords = cb.keywords
+            remarks = cb.remarks
+        elif o == "--ecb":
+            keywords = ecb.keywords
+            remarks = ecb.remarks
+        elif o == "--decb":
+            keywords = decb.keywords
+            remarks = decb.remarks
+        elif o == "--secb":
+            keywords = secb.keywords
+            remarks = secb.remarks
+        elif o == "--sdecb":
+            keywords = sdecb.keywords
+            remarks = sdecb.remarks
+        else:
+            unused.append((o, a))
+
+    if iname is None:
+        if len(args) == 0:
+            usage()
+            sys.exit(2)
+        iname = args[0]
+        args = args[1:]
+
+    if oname is None:
+        if len(args) == 0:
+            oname = f'{iname}.{ext}'
+        else:
+            oname = args[0]
+            args = args[1:]
+
+    if len(args) != 0:
+        usage()
+        sys.exit(2)
+
+    return iname, oname, unused
 
 
 def tokenize_line(line):
@@ -96,7 +170,6 @@ def getids(pp):
             if field[0] == parser.ID:
                 var = field[1].upper()
                 idtype = getidtype(ix, line)
-                # print(var, idtype)
                 if idtype == 'strarr':
                     strarr[var] = True
                 elif idtype == 'strvar':
@@ -105,9 +178,6 @@ def getids(pp):
                     numarr[var] = True
                 else:
                     numvar[var] = True
-    print(numvar)
-    print(strvar)
-    print(numarr)
-    print(strarr)
+
     return {'numvar': set(numvar.keys()), 'strvar': set(strvar.keys()), 'numarr': set(numarr.keys()),
             'strarr': set(strarr.keys())}
