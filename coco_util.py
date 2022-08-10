@@ -2,6 +2,10 @@ import parser
 from coco_sdecb import keywords, remarks
 
 
+class LineNumberError(RuntimeError):
+    pass
+
+
 def tokenize_line(line):
     tokens = []
     for token in line:
@@ -42,5 +46,68 @@ def tokenize(data, ws=False, disk=True):
     return bytearray(tokenized)
 
 
-def tokenize_file(iname, oname, ws=False, disk=True):
-    open(oname, 'wb').write(tokenize(open(iname, 'r').read(), ws=ws, disk=disk))
+def renumber(pp, start=10, interval=10):
+    parsed = pp.full_parse
+    labels = {}
+    number = start
+
+    for ix, line in enumerate(parsed):
+        if line[0][0] == parser.LABEL:
+            labels[line[0][1]] = f'{number}'
+            parsed[ix][0] = (parser.LABEL, f'{number}')
+        else:
+            parsed[ix] = [(parser.LABEL, f'{number}')] + parsed[ix]
+        number += interval
+        if number > 32767:
+            raise LineNumberError(number) from None
+
+    for lix, line in enumerate(parsed):
+        code = parser.NONE
+        for tix, token in enumerate(line):
+            if token[0] == parser.SEP or (code == pp.kw2code["THEN"] and token[0] not in [parser.NUM, parser.WS]):
+                code = parser.NONE
+            elif code != parser.NONE and token[0] == parser.NUM:
+                parsed[lix][tix] = (parser.NUM, labels[token[1]])
+            elif token[0] in [pp.kw2code["THEN"], pp.kw2code["GO"]]:
+                code = token[0]
+
+    pp.full_parse = parsed
+
+
+def getidtype(ix, line):
+    if ix + 1 < len(line) and line[ix + 1][1][0] == '$':
+        if ix + 2 < len(line) and line[ix + 2][1][0] == '(':
+            return 'strarr'
+        return 'strvar'
+    if ix + 1 < len(line) and line[ix + 1][1][0] == '(':
+        return 'numarr'
+    return 'numvar'
+
+
+def getids(pp):
+    lines = pp.no_ws()
+    numvar = {}
+    strvar = {}
+    numarr = {}
+    strarr = {}
+
+    for line in lines:
+        for ix, field in enumerate(line):
+            if field[0] == parser.ID:
+                var = field[1].upper()
+                idtype = getidtype(ix, line)
+                # print(var, idtype)
+                if idtype == 'strarr':
+                    strarr[var] = True
+                elif idtype == 'strvar':
+                    strvar[var] = True
+                elif idtype == 'numarr':
+                    numarr[var] = True
+                else:
+                    numvar[var] = True
+    print(numvar)
+    print(strvar)
+    print(numarr)
+    print(strarr)
+    return {'numvar': set(numvar.keys()), 'strvar': set(strvar.keys()), 'numarr': set(numarr.keys()),
+            'strarr': set(strarr.keys())}

@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
 import getopt
 import sys
+import parser
 
-from coco_util import tokenize
+from coco_util import renumber
+from coco_sdecb import keywords, remarks
 
 
 def usage():
     sys.stderr.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n')
-    sys.stderr.write('\t-c\n')
-    sys.stderr.write('\t--cassette\t\t\tcasette file\n')
-    sys.stderr.write('\t-d\n')
-    sys.stderr.write('\t--disk\t\t\tdisk file (default)\n')
     sys.stderr.write('\t-h\n')
     sys.stderr.write('\t--help\t\t\tthis help\n')
     sys.stderr.write('\t-i<iname>\n')
     sys.stderr.write('\t--input=<iname>\t\tinput file\n')
     sys.stderr.write('\t-o<oname>\n')
     sys.stderr.write('\t--output=<oname>\toutput file\n')
-    sys.stderr.write('\t-w\n')
-    sys.stderr.write('\t--whitespace\t\tpreserve whitespace\n')
+    sys.stderr.write('\t-s<start>\n')
+    sys.stderr.write('\t--start=<start>\t\tstarting line number\n')
+    sys.stderr.write('\t-v<interval>\n')
+    sys.stderr.write('\t--interval=<interval>\t\tinverval between line numbers\n')
 
 
-shortopts = 'cdhi:o:w'
-longopts = ["cassette", "disk", "input=", "output=", "whitespace"]
+shortopts = 'hi:o:s:v:'
+longopts = ["input=", "output=", "start=", "interval="]
 try:
     opts, args = getopt.getopt(sys.argv[1:], shortopts, longopts)
 except getopt.GetoptError as err:
@@ -32,23 +32,27 @@ except getopt.GetoptError as err:
 
 iname = None
 oname = None
-ws = False
-disk = True
+start = 10
+interval = 10
 
 for o, a in opts:
-    if o in ["-c", "--casette"]:
-        disk = False
-    elif o in ["-d", "--disk"]:
-        disk = True
-    elif o in ["-h", "--help:"]:
+    if o in ["-h", "--help:"]:
         usage()
         sys.exit(0)
     elif o in ["-i", "--input"]:
         iname = a
     elif o in ["-o", "--output"]:
         oname = a
-    elif o in ["-w", "--whitespace"]:
-        ws = True
+    elif o in ["-s", "--start"]:
+        start = int(a)
+        if start < 0 or start > 32767:
+            sys.stderr.write(f'Illegal starting line number: {start}\n')
+            sys.exit(2)
+    elif o in ["-v", "--interval"]:
+        interval = int(a)
+        if interval < 1:
+            sys.stderr.write(f'Illegal line number interval: {interval}\n')
+            sys.exit(2)
     else:
         assert False, "unhandled option"
 
@@ -61,7 +65,7 @@ if iname is None:
 
 if oname is None:
     if len(args) == 0:
-        oname = f'{iname}.tok'
+        oname = f'{iname}.renum'
     else:
         oname = args[0]
         args = args[1:]
@@ -70,4 +74,6 @@ if len(args) != 0:
     usage()
     sys.exit(2)
 
-open(oname, 'wb').write(tokenize(open(iname, 'r').read(), ws=ws, disk=disk))
+pp = parser.Parser(keywords, remarks, open(iname, 'r').read())
+renumber(pp, start=start, interval=interval)
+open(oname, 'w').write(pp.deparse(pp.full_parse))

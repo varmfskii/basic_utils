@@ -21,7 +21,7 @@ class Parser:
             (WS, re.compile('^( +)')),
             (QUOTED, re.compile('^("[^"]*")')),
             (NUM, re.compile('^(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(E[+-]?[0-9]*)?)', flags=re.IGNORECASE)),
-            (ID, re.compile('^([A-Z][A-Z0-9]*\\$?)', flags=re.IGNORECASE)),
+            (ID, re.compile('^([A-Z][A-Z0-9]*)', flags=re.IGNORECASE)),
             (LEFT, re.compile('^(\\()')),
             (RIGHT, re.compile('^(\\))')),
             (SEP, re.compile('^(:)'))
@@ -50,10 +50,11 @@ class Parser:
     def parse_line(self, line):
         self.pos = 0
         self.line_len = len(line)
-        if not self.matcher(self.label, line):
-            return False
         other = ""
-        parsed = [(LABEL, self.match)]
+        if self.matcher(self.label, line):
+            parsed = [(LABEL, self.match)]
+        else:
+            parsed = []
         while self.pos < self.line_len:
             self.match = ""
             code = NONE
@@ -100,19 +101,6 @@ class Parser:
                     new_line.append(val)
             rv.append(new_line)
         return rv
-
-    def ids(self):
-        lines = self.no_ws()
-        ids = []
-        for line in lines:
-            for ix, field in enumerate(line):
-                if field[0] == ID:
-                    var = field[1].upper()
-                    if ix + 1 < len(line) and line[ix + 1][0] == LEFT:
-                        var += '('
-                    if var not in ids:
-                        ids.append(var)
-        return ids
 
     @staticmethod
     def deparse(lines):
