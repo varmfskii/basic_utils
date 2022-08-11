@@ -3,7 +3,7 @@ a collection of python scripts for processing BASIC program
 files for vintage computers.
 
 ## Supported Machines
-* Tandy/Radio Shack Color Computer 1, 2, and 3
+* Tandy/Radio Shack Color Computer 1, 2, and 3 and Dragon 32/64
   * coco_pack.py
   
     Make a BASIC program take as little space as possible.

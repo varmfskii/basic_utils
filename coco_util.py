@@ -1,5 +1,4 @@
 import getopt
-import random
 import sys
 
 import coco_cb as cb
@@ -7,10 +6,13 @@ import coco_decb as decb
 import coco_ecb as ecb
 import coco_sdecb as sdecb
 import coco_secb as secb
+import dragon
+import dragon_dos as ddos
 import parser
 
 keywords = sdecb.keywords
 remarks = sdecb.remarks
+isdragon = False
 
 
 class LineNumberError(RuntimeError):
@@ -25,9 +27,10 @@ def options(args, sopts, lopts, usage, ext):
     # parse options for coco utils including globally available options
     global keywords
     global remarks
+    global isdragon
 
     short = "hi:o:" + sopts
-    long = ["cb", "ecb", "secb", "decb", "sdecb", "help", "input=", "output="] + lopts
+    long = ["cb", "ecb", "secb", "decb", "sdecb", "dragon", "ddos", "help", "input=", "output="] + lopts
     try:
         opts, args = getopt.getopt(args, short, long)
     except getopt.GetoptError as err:
@@ -50,18 +53,31 @@ def options(args, sopts, lopts, usage, ext):
         elif o == "--cb":
             keywords = cb.keywords
             remarks = cb.remarks
+            isdragon = False
         elif o == "--ecb":
             keywords = ecb.keywords
             remarks = ecb.remarks
+            isdragon = False
         elif o == "--decb":
             keywords = decb.keywords
             remarks = decb.remarks
+            isdragon = False
         elif o == "--secb":
             keywords = secb.keywords
             remarks = secb.remarks
+            isdragon = False
         elif o == "--sdecb":
             keywords = sdecb.keywords
             remarks = sdecb.remarks
+            isdragon = False
+        elif o == "--dragon":
+            keywords = dragon.keywords
+            remarks = dragon.remarks
+            isdragon = True
+        elif o == "--ddos":
+            keywords = ddos.keywords
+            remarks = ddos.remarks
+            isdragon = True
         else:
             unused.append((o, a))
 
@@ -157,18 +173,23 @@ def tokenize(pp, ws=False, disk=True):
     else:
         parsed = pp.no_ws()
     tokenized = []
-    if disk:
+    if isdragon:
+        address = 0x2401
+    elif disk:
         address = 0x2601
     else:
         address = 0x25fe
     for line in parsed:
         line_tokens = tokenize_line(line)
         address += 2 + len(line_tokens)
-        tokenized += [address // 256, address & 0xff] + line_tokens
+        tokenized += [address // 0x100, address & 0xff] + line_tokens
     tokenized += [0, 0]
-    if disk:
+    if isdragon:
         val = len(tokenized)
-        tokenized = [255, val // 256, val & 0xff] + tokenized
+        tokenized = [0x55, 0x01, 0x24, 0x01, val // 256, val & 0xff, 0x8b, 0x8d, 0xaa] + tokenized
+    elif disk:
+        val = len(tokenized)
+        tokenized = [0xff, val // 0x100, val & 0xff] + tokenized
     return bytearray(tokenized)
 
 
