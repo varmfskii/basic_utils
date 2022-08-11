@@ -80,6 +80,45 @@ def options(args, sopts, lopts, usage, ext):
     return iname, oname, unused
 
 
+def getlabs(pp):
+    labels = []
+
+    for line in pp.full_parse:
+        if line[0][0] == parser.LABEL:
+            labels.append(line[0][1])
+
+    return labels
+
+
+def gettgtlabs(pp):
+    parsed = pp.full_parse
+    labels = []
+
+    for line in parsed:
+        code = parser.NONE
+        for token in line:
+            if token[0] == parser.SEP or (
+                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [parser.NUM, parser.WS]):
+                code = parser.NONE
+            elif code != parser.NONE and token[0] == parser.NUM and token[1] not in labels:
+                labels.append(token[1])
+            elif token[0] in [pp.kw2code["THEN"], pp.kw2code["ELSE"], pp.kw2code["GO"]]:
+                code = token[0]
+    labels.sort()
+    return labels
+
+
+def validatelabs(pp):
+    labs = getlabs(pp)
+    tgtlabs = gettgtlabs(pp)
+
+    for lab in tgtlabs:
+        if lab not in labs:
+            return False
+
+    return True
+
+
 def tokenize_line(line):
     tokens = []
     for token in line:
@@ -185,45 +224,6 @@ def getids(pp):
 
     return {'numvar': set(numvar.keys()), 'strvar': set(strvar.keys()), 'numarr': set(numarr.keys()),
             'strarr': set(strarr.keys())}
-
-
-def getlabs(pp):
-    labels = []
-
-    for line in pp.full_parse:
-        if line[0][0] == parser.LABEL:
-            labels.append(line[0][1])
-
-    return labels
-
-
-def gettgtlabs(pp):
-    parsed = pp.full_parse
-    labels = []
-
-    for line in parsed:
-        code = parser.NONE
-        for token in line:
-            if token[0] == parser.SEP or (
-                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [parser.NUM, parser.WS]):
-                code = parser.NONE
-            elif code != parser.NONE and token[0] == parser.NUM and token[1] not in labels:
-                labels.append(token[1])
-            elif token[0] in [pp.kw2code["THEN"], pp.kw2code["ELSE"], pp.kw2code["GO"]]:
-                code = token[0]
-    labels.sort()
-    return labels
-
-
-def validatelabs(pp):
-    labs = getlabs(pp)
-    tgtlabs = gettgtlabs(pp)
-
-    for lab in tgtlabs:
-        if lab not in labs:
-            return False
-
-    return True
 
 
 def cleanlabs(pp):
