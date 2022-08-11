@@ -64,7 +64,7 @@ class Parser:
                     self.match = line[self.pos:self.pos + kwl]
                     self.pos += kwl
                     code = self.kw2code[kw]
-                    if self.match in self.remarks:
+                    if self.match.upper() in self.remarks:
                         if other != "":
                             parsed.append((OTHER, other))
                             other = ""
@@ -89,7 +89,8 @@ class Parser:
                 self.pos += 1
         if other != "":
             parsed.append((OTHER, other))
-        self.full_parse.append(parsed)
+        if parsed:
+            self.full_parse.append(parsed)
         return parsed
 
     def no_ws(self):

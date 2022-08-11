@@ -2,6 +2,7 @@
 import sys
 
 import coco_util as cu
+import parser
 
 
 def usage():
@@ -28,6 +29,7 @@ for o, a in opts:
     elif o in ["-w", "--whitespace"]:
         ws = True
     else:
-        assert False, "unhandled option"
+        assert False, f'unhandled option [{o}]'
 
-open(oname, 'wb').write(cu.tokenize(open(iname, 'r').read(), ws=ws, disk=disk))
+pp = parser.Parser(cu.keywords, cu.remarks, open(iname, 'r').read())
+open(oname, 'wb').write(cu.tokenize(pp, ws=ws, disk=disk))
