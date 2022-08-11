@@ -386,3 +386,34 @@ def pack(pp):
     noremarks(pp)
     mergelines(pp)
     renumber(pp, start=0, interval=1)
+
+
+def detokenize(data):
+    data = list(data)
+
+    if data[0] == 0x55:
+        ix = 9
+        pp = parser.Parser(ddos.keywords, ddos.remarks)
+    elif data[0] == 0xff:
+        ix = 3
+        pp = parser.Parser(sdecb.keywords, sdecb.remarks)
+    else:
+        ix = 0
+        pp = parser.Parser(sdecb.keywords, sdecb.remarks)
+
+    while data[ix] != 0x00 or data[ix + 1] != 0x00:
+        line = f'{data[ix + 2] * 0x100 + data[ix + 3]} '
+        ix += 4
+        while data[ix] != 0x00:
+            if data[ix] < 0x80:
+                line += chr(data[0])
+                ix += 1
+            elif data[ix] != 0xff:
+                line += pp.code2kw[data[ix]]
+                ix += 1
+            else:
+                line += pp.code2kw[0xff00 + data[ix + 1]]
+                ix += 2
+        pp.parse_line(line)
+
+    return pp

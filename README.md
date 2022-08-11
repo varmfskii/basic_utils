@@ -4,6 +4,10 @@ files for vintage computers.
 
 ## Supported Machines
 * Tandy/Radio Shack Color Computer 1, 2, and 3 and Dragon 32/64
+  * coco_detokenize.py
+  
+    Convert a tokenized BASIC program into text
+  
   * coco_pack.py
   
     Make a BASIC program take as little space as possible.
