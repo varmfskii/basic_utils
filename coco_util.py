@@ -125,6 +125,9 @@ def renumber(pp, start=10, interval=10):
     labels = {}
     number = start
 
+    if not validatelabs(pp):
+        raise LineNumberError('unmatched label') from None
+
     for ix, line in enumerate(parsed):
         if line[0][0] == parser.LABEL:
             labels[line[0][1]] = f'{number}'
@@ -138,11 +141,12 @@ def renumber(pp, start=10, interval=10):
     for lix, line in enumerate(parsed):
         code = parser.NONE
         for tix, token in enumerate(line):
-            if token[0] == parser.SEP or (code == pp.kw2code["THEN"] and token[0] not in [parser.NUM, parser.WS]):
+            if token[0] == parser.SEP or (
+                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [parser.NUM, parser.WS]):
                 code = parser.NONE
             elif code != parser.NONE and token[0] == parser.NUM:
                 parsed[lix][tix] = (parser.NUM, labels[token[1]])
-            elif token[0] in [pp.kw2code["THEN"], pp.kw2code["GO"]]:
+            elif token[0] in [pp.kw2code["THEN"], pp.kwcode["ELSE"], pp.kw2code["GO"]]:
                 code = token[0]
 
     pp.full_parse = parsed
@@ -181,3 +185,78 @@ def getids(pp):
 
     return {'numvar': set(numvar.keys()), 'strvar': set(strvar.keys()), 'numarr': set(numarr.keys()),
             'strarr': set(strarr.keys())}
+
+
+def getlabs(pp):
+    labels = []
+
+    for line in pp.full_parse:
+        if line[0][0] == parser.LABEL:
+            labels.append(line[0][1])
+
+    return labels
+
+
+def gettgtlabs(pp):
+    parsed = pp.full_parse
+    labels = []
+
+    for line in parsed:
+        code = parser.NONE
+        for token in line:
+            if token[0] == parser.SEP or (
+                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [parser.NUM, parser.WS]):
+                code = parser.NONE
+            elif code != parser.NONE and token[0] == parser.NUM and token[1] not in labels:
+                labels.append(token[1])
+            elif token[0] in [pp.kw2code["THEN"], pp.kw2code["ELSE"], pp.kw2code["GO"]]:
+                code = token[0]
+    labels.sort()
+    return labels
+
+
+def validatelabs(pp):
+    labs = getlabs(pp)
+    tgtlabs = gettgtlabs(pp)
+
+    for lab in tgtlabs:
+        if lab not in labs:
+            return False
+
+    return True
+
+
+def cleanlabs(pp):
+    labels = gettgtlabs(pp)
+    parsed = pp.full_parse
+    lines = []
+
+    for line in parsed:
+        if line[0][0] == parser.LABEL and line[0][1] in labels:
+            lines.append(line)
+        elif len(line) > 1:
+            lines.append(line[1:])
+
+    pp.full_parse = lines
+
+
+def noremarks(pp):
+    labels = gettgtlabs(pp)
+    lines = []
+
+    for line in pp.full_parse:
+        for tix, token in enumerate(line):
+            if token[0] in [pp.kw2code["REM"], pp.kw2code["'"]]:
+                if tix > 0 and line[tix - 1][0] == parser.SEP:
+                    tix -= 1
+                if tix == 0:
+                    line = []
+                else:
+                    line = line[tix - 1:]
+                break
+        if len(line) == 1 and line[0][0] != parser.LABEL and line[0][1] in labels:
+            line += (pp.kw2code["'"], "'")
+        if len(line) != 0:
+            lines.append(line)
+
+    pp.full_parse = lines
