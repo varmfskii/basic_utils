@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-import coco_util as cu
+import coco as cu
 import parser
 
 usage = ''

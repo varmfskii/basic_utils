@@ -1,3 +1,4 @@
+# parse Microsoft BASIC dialects, may be useful for some others
 import re
 
 NONE = -1

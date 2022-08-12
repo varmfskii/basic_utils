@@ -8,7 +8,7 @@ a collection of python scripts for processing BASIC program files for vintage co
     * coco_detokenize.py
 
       Convert a tokenized BASIC program into text
-  
+
     * coco_pack.py
 
       Make a BASIC program take as little space as possible.

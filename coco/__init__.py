@@ -1,14 +1,10 @@
 import getopt
 import sys
 
-import coco_cb as cb
-import coco_decb as decb
-import coco_ecb as ecb
-import coco_sdecb as sdecb
-import coco_secb as secb
-import dragon
-import dragon_dos as ddos
 import parser
+from .coco import secb, ecb, decb, cb, sdecb
+from .dragon import basic as dragon
+from .dragon import ddos
 
 keywords = sdecb.keywords
 remarks = sdecb.remarks
@@ -395,15 +391,12 @@ def detokenize(data):
     listing = ""
 
     if data[0] == 0x55:
-        print("ddos")
         ix = 9
         pp = parser.Parser(ddos.keywords, ddos.remarks)
     elif data[0] == 0xff:
-        print("disk")
         ix = 3
         pp = parser.Parser(sdecb.keywords, sdecb.remarks)
     else:
-        print("casette")
         ix = 0
         pp = parser.Parser(sdecb.keywords, sdecb.remarks)
 

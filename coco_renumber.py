@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-import coco_util as cu
+import coco as cu
 import parser
 
 usage = ('\t-s<n>\t--start=<num>\t\tstarting line number\n'
