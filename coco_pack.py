@@ -4,16 +4,9 @@ import sys
 import coco_util as cu
 import parser
 
-
-def usage():
-    sys.stderr.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n')
-    sys.stderr.write('\t-c\t--casette\ttokenized cassette file\n')
-    sys.stderr.write('\t-d\t--disk\t\ttokenized disk file (default)\n')
-    sys.stderr.write('\t-h\t--help\t\tthis help\n')
-    sys.stderr.write('\t-i<n>\t--input=<file>\tinput file\n')
-    sys.stderr.write('\t-o<n>\t--output=<file>\toutput file\n')
-    sys.stderr.write('\t-u\t--text\t\ttext file\n')
-
+usage = ('\t-c\t--casette\t\ttokenized cassette file\n'
+         '\t-d\t--disk\t\t\ttokenized disk file (default)\n'
+         '\t-u\t--text\t\t\ttext file\n')
 
 disk = True
 tokenize = True

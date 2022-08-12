@@ -4,16 +4,8 @@ import sys
 import coco_util as cu
 import parser
 
-
-def usage():
-    sys.stderr.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n')
-    sys.stderr.write('\t-h\t--help\t\t\tthis help\n')
-    sys.stderr.write('\t-i<n>\t--input=<file>\t\tinput file\n')
-    sys.stderr.write('\t-o<n>\t--output=<file>\t\toutput file\n')
-    sys.stderr.write('\t-s<n>\t--start=<num>\t\tstarting line number\n')
-    sys.stderr.write('\t-v<n>\t--interval=<num>\tinverval between line numbers\n')
-
-
+usage = ('\t-s<n>\t--start=<num>\t\tstarting line number\n'
+         '\t-v<n>\t--interval=<num>\tinterval between line numbers\n')
 shortopts = 's:v:'
 longopts = ["start=", "interval="]
 iname, oname, opts = cu.options(sys.argv[1:], shortopts, longopts, usage, 'renum')

@@ -4,14 +4,7 @@ import sys
 import coco_util as cu
 import parser
 
-
-def usage():
-    sys.stderr.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n')
-    sys.stderr.write('\t-h\t--help\t\tthis help\n')
-    sys.stderr.write('\t-i<n>\t--input=<file>\tinput file\n')
-    sys.stderr.write('\t-o<n>\t--output=<file>\toutput file\n')
-
-
+usage = ''
 shortopts = ''
 longopts = []
 iname, oname, opts = cu.options(sys.argv[1:], shortopts, longopts, usage, 'reid')

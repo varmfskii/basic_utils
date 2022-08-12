@@ -23,19 +23,37 @@ class IDError(RuntimeError):
     pass
 
 
-def options(args, sopts, lopts, usage, ext):
+def usage(fh, localusage):
+    fh.write(
+        f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n'
+        '\t-b\t--basic=<dialect>\tbasic dialect\n'
+        '\t-h\t--help\t\t\tthis help\n'
+        '\t-i<n>\t--input=<file>\t\tinput file\n'
+        '\t-o<n>\t--output=<file>\t\toutput file\n' + localusage)
+
+
+def options(args, sopts, lopts, localusage, ext):
     # parse options for coco utils including globally available options
     global keywords
     global remarks
     global isdragon
 
-    short = "hi:o:" + sopts
-    long = ["cb", "ecb", "secb", "decb", "sdecb", "dragon", "ddos", "help", "input=", "output="] + lopts
+    short = "b:hi:o:" + sopts
+    long = ["basic=", "help", "input=", "output="] + lopts
+    dialects = {
+        "cb": (cb.keywords, cb.remarks, False),
+        "ecb": (ecb.keywords, ecb.remarks, False),
+        "decb": (decb.keywords, decb.remarks, False),
+        "secb": (secb.keywords, secb.remarks, False),
+        "sdecb": (sdecb.keywords, sdecb.remarks, False),
+        "dragon": (dragon.keywords, dragon.remarks, False),
+        "ddos": (ddos.keywords, ddos.remarks, False),
+    }
     try:
         opts, args = getopt.getopt(args, short, long)
     except getopt.GetoptError as err:
         print(err)
-        usage()
+        usage(sys.stderr, localusage)
         sys.exit(2)
 
     unused = []
@@ -44,46 +62,30 @@ def options(args, sopts, lopts, usage, ext):
 
     for o, a in opts:
         if o in ["-h", "--help:"]:
-            usage()
+            usage(sys.stdout, localusage)
             sys.exit(0)
         elif o in ["-i", "--input"]:
             iname = a
         elif o in ["-o", "--output"]:
             oname = a
-        elif o == "--cb":
-            keywords = cb.keywords
-            remarks = cb.remarks
-            isdragon = False
-        elif o == "--ecb":
-            keywords = ecb.keywords
-            remarks = ecb.remarks
-            isdragon = False
-        elif o == "--decb":
-            keywords = decb.keywords
-            remarks = decb.remarks
-            isdragon = False
-        elif o == "--secb":
-            keywords = secb.keywords
-            remarks = secb.remarks
-            isdragon = False
-        elif o == "--sdecb":
-            keywords = sdecb.keywords
-            remarks = sdecb.remarks
-            isdragon = False
-        elif o == "--dragon":
-            keywords = dragon.keywords
-            remarks = dragon.remarks
-            isdragon = True
-        elif o == "--ddos":
-            keywords = ddos.keywords
-            remarks = ddos.remarks
-            isdragon = True
+        elif o in ["-b", "--basic"]:
+            if a in dialects.keys():
+                keywords, remarks, isdragon = dialects[a]
+            elif a == "help":
+                print("Supported dialects:")
+                for key in dialects.keys():
+                    print(f'\t{key}')
+                sys.exit(0)
+            else:
+                sys.stderr.write(f'Unsupported dialect: {a}\n')
+                sys.stderr.write("--basic=help to list available dialects")
+                sys.exit(2)
         else:
             unused.append((o, a))
 
     if iname is None:
         if len(args) == 0:
-            usage()
+            usage(sys.stderr, localusage)
             sys.exit(2)
         iname = args[0]
         args = args[1:]
@@ -390,6 +392,7 @@ def pack(pp):
 
 def detokenize(data):
     data = list(data)
+    listing = []
 
     if data[0] == 0x55:
         ix = 9
@@ -404,16 +407,29 @@ def detokenize(data):
     while data[ix] != 0x00 or data[ix + 1] != 0x00:
         line = f'{data[ix + 2] * 0x100 + data[ix + 3]} '
         ix += 4
+        lastid = False
         while data[ix] != 0x00:
             if data[ix] < 0x80:
-                line += chr(data[0])
-                ix += 1
-            elif data[ix] != 0xff:
-                line += pp.code2kw[data[ix]]
+                if 65 <= data[ix] <= 90:
+                    # A-Z
+                    lastid = True
+                elif data[ix] < 48 or data[ix] > 57:
+                    # not 0-9
+                    lastid = False
+                line += chr(data[ix])
                 ix += 1
             else:
-                line += pp.code2kw[0xff00 + data[ix + 1]]
-                ix += 2
+                if data[ix] != 0xff:
+                    kw = pp.code2kw[data[ix]]
+                    ix += 1
+                else:
+                    kw = pp.code2kw[0xff00 + data[ix + 1]]
+                    ix += 2
+                if lastid and kw[0].isalnum():
+                    line += " "
+                    lastid = False
+                line += kw
         pp.parse_line(line)
+        listing.append(line)
 
-    return pp
+    return pp, listing
