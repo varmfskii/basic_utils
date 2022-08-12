@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 import sys
 
-import coco as cu
-import parser
+from parser import Parser
+from coco import options, keywords, remarks, reid
 
-usage = ''
-shortopts = ''
-longopts = []
-iname, oname, opts = cu.options(sys.argv[1:], shortopts, longopts, usage, 'reid')
 
-for o, a in opts:
-    assert False, f'unhandled option [{o}]'
+def main():
+    usage = ''
+    shortopts = ''
+    longopts = []
+    iname, oname, opts = options(sys.argv[1:], shortopts, longopts, usage, 'reid')
+    for o, a in opts:
+        assert False, f'unhandled option [{o}]'
+    pp = Parser(keywords, remarks, open(iname, 'r').read())
+    reid(pp)
+    open(oname, 'w').write(pp.deparse(pp.full_parse))
 
-pp = parser.Parser(cu.keywords, cu.remarks, open(iname, 'r').read())
-cu.reid(pp)
-open(oname, 'w').write(pp.deparse(pp.full_parse))
+
+if __name__ == "__main__":
+    main()

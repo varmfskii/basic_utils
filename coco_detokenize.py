@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 import sys
 
-import coco as cu
+from coco import options, detokenize
 
-usage = ''
-shortopts = ''
-longopts = []
-iname, oname, opts = cu.options(sys.argv[1:], shortopts, longopts, usage, 'txt')
-ws = False
-disk = True
 
-for o, a in opts:
-    assert False, f'unhandled option [{o}]'
+def main(args):
+    usage = ''
+    shortopts = ''
+    longopts = []
+    iname, oname, opts = options(args, shortopts, longopts, usage, 'txt')
 
-pp, listing = cu.detokenize(open(iname, 'rb').read())
-open(oname, 'w').write(listing)
+    for o, a in opts:
+        assert False, f'unhandled option [{o}]'
+
+    pp, listing = detokenize(open(iname, 'rb').read())
+    open(oname, 'w').write(listing)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

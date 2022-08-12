@@ -1,5 +1,6 @@
 # parse Microsoft BASIC dialects, may be useful for some others
 import re
+import sys
 
 NONE = -1
 OTHER = 0
@@ -118,3 +119,7 @@ class Parser:
 
     def pack(self):
         return self.deparse(self.no_ws())
+
+
+if __name__ == "__main__":
+    sys.stderr.write("This is a library")
