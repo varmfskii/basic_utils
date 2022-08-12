@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-from coco import options, detokenize
+from coco_dragon import options, detokenize
 
 
 def main(args):

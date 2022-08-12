@@ -1,8 +1,8 @@
 import getopt
 import sys
 
-from coco.coco import cb, ecb, decb, secb, sdecb
-from coco.dragon import basic as dragon, ddos
+from coco_dragon.coco_basic import cb, ecb, decb, secb, sdecb
+from coco_dragon.dragon_basic import basic as dragon, ddos
 
 keywords = sdecb.keywords
 remarks = sdecb.remarks
@@ -19,7 +19,7 @@ def usage(fh, localusage):
 
 
 def options(args, sopts, lopts, localusage, ext):
-    # parse options for coco utils including globally available options
+    # parse options for coco_dragon utils including globally available options
     global keywords
     global remarks
     global isdragon
@@ -32,7 +32,7 @@ def options(args, sopts, lopts, localusage, ext):
         "decb": (decb.keywords, decb.remarks, False),
         "secb": (secb.keywords, secb.remarks, False),
         "sdecb": (sdecb.keywords, sdecb.remarks, False),
-        "dragon": (dragon.keywords, dragon.remarks, False),
+        "dragon_basic": (dragon.keywords, dragon.remarks, False),
         "ddos": (ddos.keywords, ddos.remarks, False),
     }
     try:

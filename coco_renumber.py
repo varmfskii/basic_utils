@@ -2,7 +2,7 @@
 import sys
 
 from parser import Parser
-from coco import options, keywords, remarks, renumber
+from coco_dragon import options, keywords, remarks, renumber
 
 
 def main():

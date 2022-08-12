@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-from coco import options, keywords, remarks, pack, tokenize
+from coco_dragon import options, keywords, remarks, pack, tokenize
 from parser import Parser
 
 

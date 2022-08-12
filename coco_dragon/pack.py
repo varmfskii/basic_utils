@@ -1,6 +1,6 @@
 import parser
-from coco.labels import gettgtlabs, cleanlabs, renumber
-from coco.variables import reid
+from coco_dragon.labels import gettgtlabs, cleanlabs, renumber
+from coco_dragon.variables import reid
 
 
 def noremarks(pp):
