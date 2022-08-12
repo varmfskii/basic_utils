@@ -6,7 +6,7 @@ import coco_util as cu
 usage = ''
 shortopts = ''
 longopts = []
-iname, oname, opts = cu.options(sys.argv[1:], shortopts, longopts, usage, 'tok')
+iname, oname, opts = cu.options(sys.argv[1:], shortopts, longopts, usage, 'txt')
 ws = False
 disk = True
 

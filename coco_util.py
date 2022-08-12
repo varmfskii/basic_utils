@@ -392,15 +392,18 @@ def pack(pp):
 
 def detokenize(data):
     data = list(data)
-    listing = []
+    listing = ""
 
     if data[0] == 0x55:
+        print("ddos")
         ix = 9
         pp = parser.Parser(ddos.keywords, ddos.remarks)
     elif data[0] == 0xff:
+        print("disk")
         ix = 3
         pp = parser.Parser(sdecb.keywords, sdecb.remarks)
     else:
+        print("casette")
         ix = 0
         pp = parser.Parser(sdecb.keywords, sdecb.remarks)
 
@@ -429,7 +432,8 @@ def detokenize(data):
                     line += " "
                     lastid = False
                 line += kw
+        ix += 1
         pp.parse_line(line)
-        listing.append(line)
+        listing += line + '\n'
 
     return pp, listing

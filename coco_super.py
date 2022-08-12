@@ -25,6 +25,6 @@ super_keywords = [
     ("LPEEK", 0xFFA8),
     ("BUTTON", 0xFFA9),
     ("HPOINT", 0xFFAA),
-    ("ERNO", 0xAB),
-    ("ERLIN", 0xAC)
+    ("ERNO", 0xFFAB),
+    ("ERLIN", 0xFFAC)
 ]
