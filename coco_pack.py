@@ -30,7 +30,7 @@ def main():
     if astokens:
         open(oname, 'wb').write(tokenize(pp, disk=disk))
     else:
-        open(oname, 'w').write(pp.deparse(pp.full_parse))
+        open(oname, 'w').write(pp.deparse())
 
 
 if __name__ == "__main__":

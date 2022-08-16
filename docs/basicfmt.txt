@@ -1,0 +1,28 @@
+#FILE: $RCSfile: basicfmt.txt $
+#DESC: Format of Tokenised Dragon Color Basic
+#REV: $Revision: 1.2 $
+#DATE: 27/01/94
+#AUTHOR: Graham E.Kinns
+#DISCLAIMER: All information provided as is etc.
+#ARCHIVE: This file is part of the DRGNINFO collection of Dragon info files
+#CONTACT: Comments, bugs, revisions, suggestions to Dragon@grempc.demon.co.uk
+#HISTORY: 1.0 27/01/94 - Initial version
+#RCSID: $Id: basicfmt.txt 1.2 1994/05/10 16:46:07 G.E.Kinns Exp $
+#XREF: bastoken.txt - BASIC tokens
+#      dostoken.txt - Dragon DOS tokens
+
+A single line record is of the format
+        word    <PTR_NEXT_LINE>
+        word    <LINE_NUM>
+        byte[]  <TOKENISED_DATA>
+        byte    $00     End of line delimiter
+
+PTR_NEXT_LINE is the memory address of the next line (should be the byte
+  after the $00 delimiter.)
+
+LINE_NUM in binary format - over 32,767 sometimes causes signing errors
+
+TOKENISED_DATA - any byte > $7f is a token, $ff defines a function token as the
+  next token byte
+
+The end of data is represented by 2 null bytes, i.e. a $0000 mem pointer.

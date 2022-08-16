@@ -1,0 +1,183 @@
+#FILE: $RCSfile: tandydsk.txt $
+#DESC: Tandy RsDos Disk and File Formats
+#REV: $Revision: 1.1 $
+#DATE: 16/03/94
+#AUTHOR: Graham E.Kinns
+#DISCLAIMER: All information provided as is etc.
+#ARCHIVE: This file is part of the DRGNINFO collection of Dragon info files
+#CONTACT: Comments, bugs, revisions, suggestions to Dragon@grempc.demon.co.uk
+#HISTORY: 1.0 16/03/94 - Initial version
+#RCSID: $Id: tandydsk.txt 1.1 1995/08/18 14:34:59 Graham Exp $
+#XREF: basicfmt.txt - tokenised BASIC format
+#      tandytok.txt - list of Tandy BASIC tokens
+#SOURCE: Dragon User, May 1988, Eric Hall.  NDUG Dragon Notebook (file fmts)
+
+Disk Controller
+===============
+Chip used:	1793 (or compatible)
+Memory Interface:
+	$ff40
+Drives Supported:	4 (0 - 3)
+
+Disk Layout
+===========
+
+Only one format is known:
+	 35 tracks ( 0 - 34 )
+	  1 side
+	 18 sectors per track ( 1 - 18 )
+	256 bytes per sector
+
+Sector Allocation
+=================
+
+Sectors are allocated to files in granules (cf MsDos clusters) where 1
+granule contains 9 sectors.  There are 68 granules on a disk
+( 35*18 sectors / 9 per granule = 70, - 2 for the directory track )
+
+Granule Numbering
+=================
+
+Zero based, miss out the directory track i.e.
+
+Granule  0:	Track  0	Sectors  1 -  9
+Granule  1:	Track  0 	Sectors 10 - 18
+Granule 33:	Track 16	Sectors 10 - 18
+< Directory Track >
+Granule 34:	Track 18	Sectors  1 -  9
+Granule 67:	Track 34	Sectors 10 - 18
+
+Directory Track
+===============
+
+Directory is stored on Track 17
+Sector 2 contains the Granule Map
+Sectors 3 - 11 (9 sectors) store the Directory entries (Maximum 72 entries)
+Use of sectors 1, 12-18 is unknown - presumed unused
+
+Format of Granule Map
+=====================
+
+The first 68 bytes of Track 17 sector 2 represent the Granule Map.
+Each byte represents 1 granule as follows
+
+0x00-0x43   	Pointer the next granule in file chain
+0xc0-0xc9   	This granule is the last in file chain,
+		bits 3-0 tell how many sectors of the last granule are used
+0xff		Granule free
+Any other value	Either corrupt or the byte value has been used to fill
+		the granule map to remove free space on the disk since
+		no read-only attributes exist.
+
+Directory entry format
+======================
+
+Track 17, Sectors 3 - 11.  Each entry is 32 bytes long, allocated as follows
+
+0x00 - 0x07	filename (padded with 0x20, if byte 0x00 is 0x00 file has been deleted, if 0xff entry has never been used)
+0x08 - 0x0a 	extension (padded with 0x20)
+0x0b		file type
+			0x00 Basic
+			0x01 Basic data			(??)
+			0x02 Machine code program	(?? Segmented also?)
+			0x03 Text editor    		(?? Ascii text)
+0x0c		ascii flag
+			0x00 binary
+			0xff ascii format
+0x0d		number of first granule in file ( 0 - 67 )
+0x0e : 0x0f	number of bytes used in the last sector of file
+0x10 - 0x1f	reserved
+
+Bootable disks
+==============
+
+This section is very vague - I'm presuming it's similar to the DragonDos
+BOOT format.
+
+'OS' on track 34 signifies bootable (?? where - bytes 0-1 of Granule 66 ?)
+Boot code usually starts at granule 32 (Track 16, Sector 1)
+
+RSDOS Commands added to BASIC
+=============================
+
+BACKUP (Token 0xdd)
+
+COPY (Token 0xde)
+
+CVN (Token 0xffa2)
+
+DIR (Token 0xce)
+
+DRIVE (Token 0xcf)
+
+DSKI$ (Token 0xdf)
+
+DSKINI (Token 0xdc)
+
+DSKO$ (Token 0xe0)
+
+FIELD (Token 0xd0)
+
+FILES (Token 0xd1)
+
+FREE (Token 0xffa3)
+
+KILL (Token 0xd2)
+
+LOAD (Token 0xd3)
+
+LOC (Token 0xffa4)
+
+LOF (Token 0xffa5)
+
+LSET (Token 0xd4)
+
+MERGE (Token 0xd5)
+
+MKN$ (Token 0xffa6)
+
+RENAME (Token 0xd6)
+
+RSET (Token 0xd7)
+
+SAVE (Token 0xd8)
+
+UNLOAD (Token 0xdb)
+
+VERIFY (Token 0xda)
+
+WRITE (Token 0xd9)
+
+
+FILE FORMATS
+============
+
+Tokenised Basic
+---------------
+
+(This is from my own observations - may be wrong for long files - GeK )
+(No load address is given - I presume it uses the default at $0019:$001a)
+(loads at $2601 - TAE)
+Offset:
+0x00		0xff	(?? flag for Basic)
+0x01 : 0x02	length in bytes of following data
+0x03 -		tokenised data - see file basicfmt.txt
+
+Machine Language files
+----------------------
+
+Header:
+0x00		0x00
+0x01 : 0x02	length in bytes of following data
+0x03 : 0x04	load address of data
+
+Tail:
+0x00		0xff
+0x01 : 0x02	0x0000	(?? why - data length ?)
+0x03 : 0x04	EXEC address
+
+Non-Segmented files consist of
+	<header> <data> <tail>
+
+Segmented m/l files consist of
+	<header> <data> <header> <data> .... <header> <data> <tail>

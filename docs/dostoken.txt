@@ -1,0 +1,50 @@
+#FILE: $RCSfile: dostoken.txt $
+#DESC: List of the Dragon DOS additional Basic tokens
+#REV: $Revision: 1.1 $
+#DATE: 16/03/94
+#AUTHOR: Graham E.Kinns
+#DISCLAIMER: All information provided as is etc.
+#ARCHIVE: This file is part of the DRGNINFO collection of Dragon info files
+#CONTACT: Comments, bugs, revisions, suggestions to Dragon@grempc.demon.co.uk
+#HISTORY: 1.0 27/01/94 - Initial version
+#RCSID: $Id: dostoken.txt 1.1 1994/03/16 22:41:25 G.E.Kinns Exp $
+#XREF: basicfmt.txt - tokenised BASIC format
+#      bastoken.txt - Dragon BASIC tokens
+#SOURCE: Enter the Dragon
+
+#Token	Keyword
+0xce	AUTO
+0xcf	BACKUP
+0xd0	BEEP
+0xd1	BOOT
+0xd2	CHAIN
+0xd3	COPY
+0xd4	CREATE
+0xd5	DIR
+0xd6	DRIVE
+0xd7	DSKINIT
+0xd8	FREAD
+0xd9	FWRITE
+0xda	ERROR
+0xdb	KILL
+0xdc	LOAD
+0xdd	MERGE
+0xde	PROTECT
+0xdf	WAIT
+0xe0	RENAME
+0xe1	SAVE
+0xe2	SREAD
+0xe3	SWRITE
+0xe4	VERIFY
+0xe5	FROM
+0xe6	FLREAD
+0xe7	SWAP
+
+#Token	Function
+0xa2	LOF
+0xa3	FREE
+0xa4	ERL
+0xa5	ERR
+0xa6	HIMEM
+0xa7	LOC
+0xa8	FRE$

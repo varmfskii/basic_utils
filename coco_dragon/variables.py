@@ -1,4 +1,4 @@
-import parser
+from parser import Parser
 
 
 class IDError(RuntimeError):
@@ -7,7 +7,7 @@ class IDError(RuntimeError):
 
 def getidtype(ix, line):
     # decide what kind of variable is pointed to by ix in line
-    if line[ix][0] != parser.ID:
+    if line[ix][0] != Parser.ID:
         return None
     if ix + 1 < len(line) and line[ix + 1][1][0] == '$':
         if ix + 2 < len(line) and line[ix + 2][1][0] == '(':
@@ -28,7 +28,7 @@ def getids(pp):
 
     for line in lines:
         for ix, field in enumerate(line):
-            if field[0] == parser.ID:
+            if field[0] == Parser.ID:
                 var = field[1].upper()
                 idtype = getidtype(ix, line)
                 if idtype == 'strarr':
@@ -85,7 +85,7 @@ def reid(pp):
 
     for lix, line in enumerate(data):
         for tix, token in enumerate(line):
-            if token[0] == parser.ID:
-                data[lix][tix] = (parser.ID, mymap[getidtype(tix, line)][token[1].upper()])
+            if token[0] == Parser.ID:
+                data[lix][tix] = (Parser.ID, mymap[getidtype(tix, line)][token[1].upper()])
 
     pp.full_parse = data

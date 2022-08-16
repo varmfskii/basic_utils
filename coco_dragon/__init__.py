@@ -5,7 +5,7 @@ from coco_dragon.dragon_basic import basic as dragon
 from coco_dragon.dragon_basic import ddos
 from coco_dragon.getoptions import keywords, remarks, isdragon, options
 from coco_dragon.labels import gettgtlabs, validatelabs, renumber, cleanlabs
-from coco_dragon.pack import pack
+from coco_dragon.pack import pack, splitlines
 from coco_dragon.tokens import tokenize, detokenize
 from coco_dragon.variables import IDError, getidtype, getids, reid
 

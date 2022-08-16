@@ -14,7 +14,7 @@ def main():
         assert False, f'unhandled option [{o}]'
     pp = Parser(keywords, remarks, open(iname, 'r').read())
     reid(pp)
-    open(oname, 'w').write(pp.deparse(pp.full_parse))
+    open(oname, 'w').write(pp.deparse())
 
 
 if __name__ == "__main__":
