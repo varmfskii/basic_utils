@@ -56,6 +56,8 @@ def splitlines(pp):
     for line in pp.full_parse:
         start = 0
         for ix, field in enumerate(line):
+            if field[0] in [pp.kw2code["REM"], pp.kwcode["'"], pp.kw2code["IF"]]:
+                break;
             if field[0] == pp.SEP:
                 lines.append(line[start:ix])
                 start = ix+1
