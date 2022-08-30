@@ -11,11 +11,11 @@ def noremarks(pp):
         for tix, token in enumerate(line):
             if token[0] in [pp.kw2code["REM"], pp.kw2code["'"]]:
                 if tix > 0 and line[tix - 1][0] == pp.SEP:
-                    tix -= 1
+                    line = line[:tix-1]
                 if tix == 0:
                     line = []
                 else:
-                    line = line[tix - 1:]
+                    line = line[:tix+1]
                 break
         if len(line) == 1 and line[0][0] != pp.LABEL and line[0][1] in labels:
             line += (pp.kw2code["'"], "'")
@@ -31,21 +31,21 @@ def mergelines(pp):
     nextline = []
 
     for line in pp.full_parse:
-        if not nextline:
-            nextline = line
-        elif line[0][0] == pp.LABEL:
-            lines.append(nextline)
+        if line[0][0] == pp.LABEL:
+            if nextline:
+                lines.append(nextline)
             nextline = line
         else:
-            nextline += [(pp.SEP, ":")] + line
-            last = False
-            for token in line:
-                if token[0] in [pp.kw2code["REM"], pp.kw2code["'"], pp.kw2code["IF"]]:
-                    last = True
-                    break
-            if last:
+            if nextline:
+                nextline += [(pp.SEP, ":")] + line
+            else:
+                nextline = line
+        for token in line:
+            if token[0] in [pp.kw2code["REM"], pp.kw2code["'"], pp.kw2code["IF"]]:
                 lines.append(nextline)
                 nextline = []
+                break
+
     if nextline:
         lines.append(nextline)
     pp.full_parse = lines
@@ -56,8 +56,8 @@ def splitlines(pp):
     for line in pp.full_parse:
         start = 0
         for ix, field in enumerate(line):
-            if field[0] in [pp.kw2code["REM"], pp.kwcode["'"], pp.kw2code["IF"]]:
-                break;
+            if field[0] in [pp.kw2code["REM"], pp.kw2code["'"], pp.kw2code["IF"]]:
+                break
             if field[0] == pp.SEP:
                 lines.append(line[start:ix])
                 start = ix+1

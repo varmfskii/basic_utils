@@ -112,7 +112,7 @@ class Parser:
     def deparse(self, ws=False, case=UPPER):
         out = ""
         for line in self.full_parse:
-            if len(line)==0:
+            if len(line) == 0:
                 continue
             if line[0][0] != self.LABEL:
                 out += '   '
