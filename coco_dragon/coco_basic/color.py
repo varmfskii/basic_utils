@@ -70,5 +70,6 @@ color_keywords = [
     ("RIGHT$", 0xFF8F),
     ("MID$", 0xFF90),
     ("POINT", 0xFF91),
+    ("INKEY$", 0xFF92),
     ("MEM", 0xFF93)
 ]
