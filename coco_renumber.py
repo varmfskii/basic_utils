@@ -2,7 +2,7 @@
 import sys
 
 from parser import Parser
-from coco_dragon import options, keywords, remarks, renumber
+from coco_dragon import options, dialect, renumber
 
 
 def main():
@@ -26,7 +26,7 @@ def main():
                 sys.exit(2)
         else:
             assert False, "unhandled option"
-    pp = Parser(keywords, remarks, open(iname, 'r').read())
+    pp = Parser(dialect, open(iname, 'r').read())
     renumber(pp, start=start, interval=interval)
     open(oname, 'w').write(pp.deparse())
 

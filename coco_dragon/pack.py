@@ -1,5 +1,6 @@
 from coco_dragon.labels import gettgtlabs, cleanlabs, renumber
 from coco_dragon.variables import reid
+from parser import Types
 
 
 def noremarks(pp):
@@ -10,14 +11,14 @@ def noremarks(pp):
     for line in pp.full_parse:
         for tix, token in enumerate(line):
             if token[0] in [pp.kw2code["REM"], pp.kw2code["'"]]:
-                if tix > 0 and line[tix - 1][0] == pp.SEP:
+                if tix > 0 and line[tix - 1][0] == Types.SEP:
                     line = line[:tix-1]
                 if tix == 0:
                     line = []
                 else:
                     line = line[:tix+1]
                 break
-        if len(line) == 1 and line[0][0] != pp.LABEL and line[0][1] in labels:
+        if len(line) == 1 and line[0][0] != Types.LABEL and line[0][1] in labels:
             line += (pp.kw2code["'"], "'")
         if len(line) != 0:
             lines.append(line)
@@ -31,13 +32,13 @@ def mergelines(pp):
     nextline = []
 
     for line in pp.full_parse:
-        if line[0][0] == pp.LABEL:
+        if line[0][0] == Types.LABEL:
             if nextline:
                 lines.append(nextline)
             nextline = line
         else:
             if nextline:
-                nextline += [(pp.SEP, ":")] + line
+                nextline += [(Types.SEP, ":")] + line
             else:
                 nextline = line
         for token in line:
@@ -58,7 +59,7 @@ def splitlines(pp):
         for ix, field in enumerate(line):
             if field[0] in [pp.kw2code["REM"], pp.kw2code["'"], pp.kw2code["IF"]]:
                 break
-            if field[0] == pp.SEP:
+            if field[0] == Types.SEP:
                 lines.append(line[start:ix])
                 start = ix+1
         lines.append(line[start:])

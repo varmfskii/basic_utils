@@ -4,9 +4,22 @@ import sys
 from coco_dragon.coco_basic import cb, ecb, decb, secb, sdecb
 from coco_dragon.dragon_basic import basic as dragon, ddos
 
-keywords = sdecb.keywords
-remarks = sdecb.remarks
-isdragon = False
+dialects = {
+    "cb": (cb.keywords, cb.special, False, cb.do_special),
+    "ecb": (ecb.keywords, cb.special, False, cb.do_special),
+    "decb": (decb.keywords, decb.special, False, cb.do_special),
+    "secb": (secb.keywords, cb.special, False, cb.do_special),
+    "sdecb": (sdecb.keywords, decb.special, False, cb.do_special),
+    "dragon_basic": (dragon.keywords, dragon.special, False, None),
+    "ddos": (ddos.keywords, ddos.special, False, None),
+}
+
+dialect = dialects['sdecb']
+
+KEYWORDS = 0
+SPECIAL = 1
+ISDRAGON = 2
+DO_SPECIAL = 3
 
 
 def usage(fh, localusage):
@@ -20,21 +33,11 @@ def usage(fh, localusage):
 
 def options(args, sopts, lopts, localusage, ext):
     # parse options for coco_dragon utils including globally available options
-    global keywords
-    global remarks
-    global isdragon
+    global dialect
 
     short = "b:hi:o:" + sopts
     long = ["basic=", "help", "input=", "output="] + lopts
-    dialects = {
-        "cb": (cb.keywords, cb.remarks, False),
-        "ecb": (ecb.keywords, ecb.remarks, False),
-        "decb": (decb.keywords, decb.remarks, False),
-        "secb": (secb.keywords, secb.remarks, False),
-        "sdecb": (sdecb.keywords, sdecb.remarks, False),
-        "dragon_basic": (dragon.keywords, dragon.remarks, False),
-        "ddos": (ddos.keywords, ddos.remarks, False),
-    }
+
     try:
         opts, args = getopt.getopt(args, short, long)
     except getopt.GetoptError as err:
@@ -56,7 +59,7 @@ def options(args, sopts, lopts, localusage, ext):
             oname = a
         elif o in ["-b", "--basic"]:
             if a in dialects.keys():
-                keywords, remarks, isdragon = dialects[a]
+                dialect = dialects[a]
             elif a == "help":
                 print("Supported dialects:")
                 for key in dialects.keys():
@@ -84,7 +87,7 @@ def options(args, sopts, lopts, localusage, ext):
             args = args[1:]
 
     if len(args) != 0:
-        usage()
+        usage(sys.stderr, localusage)
         sys.exit(2)
 
     return iname, oname, unused

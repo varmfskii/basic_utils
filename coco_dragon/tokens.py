@@ -1,14 +1,14 @@
-from parser import Parser
-from coco_dragon.coco_basic import sdecb
+from parser import Parser, Types
+from coco_dragon.coco_basic import sdecb, decb, cb
 from coco_dragon.dragon_basic import ddos
-from coco_dragon.getoptions import isdragon
+from coco_dragon.getoptions import dialect, ISDRAGON
 
 
 def tokenize_line(line):
     # convert a parsed line into the tokenized format for a BASIC file
     tokens = []
     for token in line:
-        if token[0] == Parser.LABEL:  # line number
+        if token[0] == Types.LABEL:  # line number
             val = int(token[1])
             tokens += [val // 256, val & 0xff]
         elif token[0] > 255:  # tokenized extended keyword
@@ -16,7 +16,7 @@ def tokenize_line(line):
             tokens += [val // 256, val & 0xff]
         elif token[0] > 127:  # tokenized keyword
             tokens.append(token[0])
-        elif token[0] == Parser.QUOTED or token[0] == Parser.OTHER:  # explicit text
+        elif token[0] == Types.QUOTED or token[0] == Types.OTHER:  # explicit text
             for char in token[1]:
                 tokens.append(ord(char))
         else:
@@ -33,7 +33,7 @@ def tokenize(pp, ws=False, disk=True):
     else:
         parsed = pp.no_ws()
     tokenized = []
-    if isdragon:
+    if dialect[ISDRAGON]:
         address = 0x2401
     elif disk:
         address = 0x2601
@@ -44,7 +44,7 @@ def tokenize(pp, ws=False, disk=True):
         address += 2 + len(line_tokens)
         tokenized += [address // 0x100, address & 0xff] + line_tokens
     tokenized += [0, 0]
-    if isdragon:
+    if dialect[ISDRAGON]:
         val = len(tokenized)
         tokenized = [0x55, 0x01, 0x24, 0x01, val // 256, val & 0xff, 0x8b, 0x8d, 0xaa] + tokenized
     elif disk:
@@ -59,13 +59,13 @@ def detokenize(data):
 
     if data[0] == 0x55:
         ix = 9
-        pp = Parser(ddos.keywords, ddos.remarks)
+        pp = Parser(ddos.keywords, ddos.special)
     elif data[0] == 0xff:
         ix = 3
-        pp = Parser(sdecb.keywords, sdecb.remarks)
+        pp = Parser(sdecb.keywords, decb.special, cb.do_special)
     else:
         ix = 0
-        pp = Parser(sdecb.keywords, sdecb.remarks)
+        pp = Parser(sdecb.keywords, decb.special, cb.do_special)
 
     while data[ix] != 0x00 or data[ix + 1] != 0x00:
         line = f'{data[ix + 2] * 0x100 + data[ix + 3]} '

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-from coco_dragon import options, keywords, remarks, pack, tokenize
+from coco_dragon import options, dialect, pack, tokenize
 from parser import Parser
 
 
@@ -25,7 +25,7 @@ def main():
             astokens = False
         else:
             assert False, f'unhandled option: [{o}]'
-    pp = Parser(keywords, remarks, open(iname, 'r').read())
+    pp = Parser(dialect, open(iname, 'r').read())
     pack(pp)
     if astokens:
         open(oname, 'wb').write(tokenize(pp, disk=disk))

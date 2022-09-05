@@ -36,4 +36,4 @@ keywords = basic.keywords + [
     ("FRE$", 0xFFA8)
 ]
 
-remarks = basic.remarks
+special = basic.special

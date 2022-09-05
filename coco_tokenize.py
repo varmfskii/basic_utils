@@ -2,7 +2,7 @@
 import sys
 
 from parser import Parser
-from coco_dragon import options, keywords, remarks, tokenize
+from coco_dragon import options, dialect, tokenize
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
             ws = True
         else:
             assert False, f'unhandled option [{o}]'
-    pp = Parser(keywords, remarks, open(iname, 'r').read())
+    pp = Parser(dialect, open(iname, 'r').read())
     open(oname, 'wb').write(tokenize(pp, ws=ws, disk=disk))
 
 

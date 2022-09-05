@@ -77,4 +77,4 @@ keywords = [
     ("go", 0xcb)
 ]
 
-remarks = ["rem"]
+special = ["rem"]
