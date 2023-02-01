@@ -55,6 +55,7 @@ def tokenize(pp, ws=False, disk=True):
 
 def detokenize(data):
     data = list(data)
+    print(f'line: {data}')
     listing = ""
 
     if data[0] == 0x55:
@@ -83,16 +84,16 @@ def detokenize(data):
                 ix += 1
                 iskw = True
             else:
-                kw = chr(data[ix])
+                kw = chr(c1)
                 iskw = False
                 if kw.isalpha():
                     # A-Z
                     lastid = True
-                elif not kw.isdigit:
+                elif not kw.isdigit():
                     # not 0-9
                     lastid = False
             if iskw:
-                if lastid and kw[1].isalpha():
+                if lastid and kw[0].isalpha():
                     line += ' '
                 lastid = False
             line += kw
