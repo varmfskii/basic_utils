@@ -36,13 +36,19 @@ def validatelabs(pp):
     # check that all labels used as targets are defined
     labs = getlabs(pp)
     tgtlabs = gettgtlabs(pp)
-
+    badlabs=[]
+    
     for lab in tgtlabs:
         if lab not in labs:
-            return False
+            badlabs.append(lab)
 
-    return True
-
+    if len(badlabs)==0:
+        return True
+    if len(badlabs)==1:
+        print(f'Bad label: {badlabs[0]}')
+    else:
+        print(f'Bad labels: {", ".join(badlabs)}')
+    return False
 
 def renumber(pp, start=10, interval=10):
     # renumber a parsed BASIC program
