@@ -113,4 +113,4 @@ keywords = [
     ("USR", 0xFFA1)
 ]
 
-special = ["REM", "'"]
+remarks = ["REM", "'"]

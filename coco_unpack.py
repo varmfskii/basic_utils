@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-from coco_dragon import options, dialect, splitlines
+from coco_dragon import options, keywords, remarks, splitlines
 from parser import Parser
 
 
@@ -13,7 +13,7 @@ def main():
     for o, a in opts:
         assert False, f'unhandled option: [{o}]'
 
-    pp = Parser(dialect, open(iname, 'r').read())
+    pp = Parser(keywords, remarks, open(iname, 'r').read())
     splitlines(pp)
     open(oname, 'w').write(pp.deparse(ws=True))
 

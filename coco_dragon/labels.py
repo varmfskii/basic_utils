@@ -1,5 +1,3 @@
-from parser import Types
-
 class LineNumberError(RuntimeError):
     pass
 
@@ -9,7 +7,7 @@ def getlabs(pp):
     labels = []
 
     for line in pp.full_parse:
-        if line[0][0] == Types.LABEL:
+        if line[0][0] == pp.LABEL:
             labels.append(line[0][1])
 
     return labels
@@ -21,12 +19,12 @@ def gettgtlabs(pp):
     labels = []
 
     for line in parsed:
-        code = Types.NONE
+        code = pp.NONE
         for token in line:
-            if token[0] == Types.SEP or (
-                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [Types.NUM, Types.WS]):
-                code = Types.NONE
-            elif code != Types.NONE and token[0] == Types.NUM and token[1] not in labels:
+            if token[0] == pp.SEP or (
+                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [pp.NUM, pp.WS]):
+                code = pp.NONE
+            elif code != pp.NONE and token[0] == pp.NUM and token[1] not in labels:
                 labels.append(token[1])
             elif token[0] in [pp.kw2code["THEN"], pp.kw2code["ELSE"], pp.kw2code["GO"]]:
                 code = token[0]
@@ -56,25 +54,25 @@ def renumber(pp, start=10, interval=10):
         raise LineNumberError('unmatched label') from None
 
     for ix, line in enumerate(parsed):
-        if line[0][0] == Types.LABEL:
+        if line[0][0] == pp.LABEL:
             labels[line[0][1]] = f'{number}'
-            parsed[ix][0] = (Types.LABEL, f'{number}')
-        elif line[0][0] == Types.WS:
-            parsed[ix] = [(Types.LABEL, f'{number}')] + parsed[ix][1:]
+            parsed[ix][0] = (pp.LABEL, f'{number}')
+        elif line[0][0] == pp.WS:
+            parsed[ix] = [(pp.LABEL, f'{number}')] + parsed[ix][1:]
         else:
-            parsed[ix] = [(Types.LABEL, f'{number}')] + parsed[ix]
+            parsed[ix] = [(pp.LABEL, f'{number}')] + parsed[ix]
         number += interval
         if number > 32767:
             raise LineNumberError(number) from None
 
     for lix, line in enumerate(parsed):
-        code = Types.NONE
+        code = pp.NONE
         for tix, token in enumerate(line):
-            if token[0] == Types.SEP or (
-                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [Types.NUM, Types.WS]):
-                code = Types.NONE
-            elif code != Types.NONE and token[0] == Types.NUM:
-                parsed[lix][tix] = (Types.NUM, labels[token[1]])
+            if token[0] == pp.SEP or (
+                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [pp.NUM, pp.WS]):
+                code = pp.NONE
+            elif code != pp.NONE and token[0] == pp.NUM:
+                parsed[lix][tix] = (pp.NUM, labels[token[1]])
             elif token[0] in [pp.kw2code["THEN"], pp.kw2code["ELSE"], pp.kw2code["GO"]]:
                 code = token[0]
 
@@ -90,7 +88,7 @@ def cleanlabs(pp):
     for line in parsed:
         if not line:
             continue
-        if line[0][0] != Types.LABEL or (line[0][0] == Types.LABEL and line[0][1] in labels):
+        if line[0][0] != pp.LABEL or (line[0][0] == pp.LABEL and line[0][1] in labels):
             lines.append(line)
         elif len(line) > 1:
             lines.append(line[1:])
