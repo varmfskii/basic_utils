@@ -49,6 +49,8 @@ def nextid(prev):
     if len(prev) == 0:
         return 'A'
     if len(prev) == 1:
+        if pref == 'L':
+            return 'N':
         if prev == 'Z':
             return 'A0'
         return chr(ord(prev) + 1)
@@ -57,6 +59,8 @@ def nextid(prev):
     if prev[1] == '9':
         return prev[0] + 'A'
     if prev[1] == 'Z':
+        if prev[0] == 'L':
+            return 'N0'
         return chr(ord(prev[0]) + 1) + '0'
     return prev[0] + chr(ord(prev[1]) + 1)
 
@@ -66,7 +70,10 @@ def getidmap(oldids, pp):
     newids = {}
     newid = ''
     for oldid in oldids:
-        newid = nextid(newid)
+        if oldid[0]=='M' and len(oldid)<3:
+            newid=oldid
+        else:
+            newid = nextid(newid)
         while newid in pp.kw2code.keys():
             newid = nextid(newid)
         newids[oldid] = newid
