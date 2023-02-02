@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
-from parser import Parser
 from coco_dragon import options, keywords, remarks, tokenize
+from parser import Parser
 
 
 def main():

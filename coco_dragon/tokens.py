@@ -1,7 +1,7 @@
-from parser import Parser
 from coco_dragon.coco_basic import sdecb
 from coco_dragon.dragon_basic import ddos
 from coco_dragon.getoptions import isdragon
+from parser import Parser
 
 
 def tokenize_line(line):

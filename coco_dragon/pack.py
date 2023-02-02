@@ -11,11 +11,11 @@ def noremarks(pp):
         for tix, token in enumerate(line):
             if token[0] in [pp.kw2code["REM"], pp.kw2code["'"]]:
                 if tix > 0 and line[tix - 1][0] == pp.SEP:
-                    line = line[:tix-1]
+                    line = line[:tix - 1]
                 if tix == 0:
                     line = []
                 else:
-                    line = line[:tix+1]
+                    line = line[:tix + 1]
                 break
         if len(line) == 1 and line[0][0] != pp.LABEL and line[0][1] in labels:
             line += (pp.kw2code["'"], "'")
@@ -60,7 +60,7 @@ def splitlines(pp):
                 break
             if field[0] == pp.SEP:
                 lines.append(line[start:ix])
-                start = ix+1
+                start = ix + 1
         lines.append(line[start:])
     pp.full_parse = lines
 
