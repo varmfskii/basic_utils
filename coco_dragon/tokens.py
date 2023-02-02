@@ -55,7 +55,6 @@ def tokenize(pp, ws=False, disk=True):
 
 def detokenize(data):
     data = list(data)
-    print(f'line: {data}')
     listing = ""
 
     if data[0] == 0x55:

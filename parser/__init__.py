@@ -26,7 +26,7 @@ class Parser:
         self.regexs = [
             (self.WS, re.compile('^( +)')),
             (self.QUOTED, re.compile('^("[^"]*")')),
-            (self.NUM, re.compile('^(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(E[+-]?[0-9]*)?|&H[0-9A-F]+)', flags=re.IGNORECASE)),
+            (self.NUM, re.compile('^(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(E[+-]?[0-9]+)?|&H[0-9A-F]+)', flags=re.IGNORECASE)),
             (self.ID, re.compile('^([A-Z][A-Z0-9]*)', flags=re.IGNORECASE)),
             (self.LEFT, re.compile('^(\\()')),
             (self.RIGHT, re.compile('^(\\))')),

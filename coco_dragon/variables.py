@@ -49,8 +49,8 @@ def nextid(prev):
     if len(prev) == 0:
         return 'A'
     if len(prev) == 1:
-        if pref == 'L':
-            return 'N':
+        if prev == 'L':
+            return 'N'
         if prev == 'Z':
             return 'A0'
         return chr(ord(prev) + 1)
