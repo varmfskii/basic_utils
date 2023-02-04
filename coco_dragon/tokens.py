@@ -75,12 +75,12 @@ def detokenize(data):
             c1 = data[ix]
             ix = ix + 1
             c2 = data[ix]
-            if c1 in pp.code2kw.keys():
-                kw = pp.code2kw[c1]
-                iskw = True
-            elif c1 * 0x100 + c2 in pp.code2kw.keys():
+            if c1 * 0x100 + c2 in pp.code2kw.keys():
                 kw = pp.code2kw[c1 * 0x100 + c2]
                 ix += 1
+                iskw = True
+            elif c1 in pp.code2kw.keys():
+                kw = pp.code2kw[c1]
                 iskw = True
             else:
                 kw = chr(c1)
