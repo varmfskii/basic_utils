@@ -5,16 +5,21 @@ import sys
 
 class Parser:
     # field types
-    NONE = 0
-    OTHER = 1
-    LABEL = 2
-    WS = 3
-    QUOTED = 4
-    NUM = 5
-    ID = 6
-    LEFT = 7
-    RIGHT = 8
-    SEP = 9
+    NONE = 256
+    OTHER = 257
+    LABEL = 258
+    WS = 259
+    QUOTED = 260
+    NUM = 261
+    ID = 262
+    DATA = 263
+    REMARK = 264
+    COMMA = ord(',')
+    LEFT = ord('(')
+    RIGHT = ord(')')
+    SEP = ord(':')
+    STR = ord('$')
+
     # case
     LOWER = -1
     NOCASE = 0
@@ -24,15 +29,13 @@ class Parser:
         self.kw2code = {}
         self.code2kw = {}
         self.regexs = [
-            (self.WS, re.compile('^( +)')),
-            (self.QUOTED, re.compile('^("[^"]*")')),
-            (self.NUM, re.compile('^(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(E[+-]?[0-9]+)?|&H[0-9A-F]+)', flags=re.IGNORECASE)),
-            (self.ID, re.compile('^([A-Z][A-Z0-9]*)', flags=re.IGNORECASE)),
-            (self.LEFT, re.compile('^(\\()')),
-            (self.RIGHT, re.compile('^(\\))')),
-            (self.SEP, re.compile('^(:)'))
+            (0, re.compile('r[(),$:]')),
+            (self.WS, re.compile(' +')),
+            (self.QUOTED, re.compile('"[^"]*"')),
+            (self.NUM, re.compile(r'([0-9]+(\.[0-9]*)?|\.[0-9]+)(E[+-]?[0-9]+)?|&H[0-9A-F]+', flags=re.IGNORECASE)),
+            (self.ID, re.compile('[A-Z][A-Z0-9]*', flags=re.IGNORECASE))
         ]
-        self.label = re.compile('^ *([0-9]+) *')
+        self.label = re.compile(' *([0-9]+)')
         for kw, code in keywords:
             self.kw2code[kw.upper()] = code
             self.code2kw[code] = kw
@@ -40,11 +43,11 @@ class Parser:
         self.match = ""
         self.pos = 0
         self.line_len = 0
-        self.full_parse = []
         if data is not None:
-            for line in data.split('\n'):
-                self.parse_line(line)
-
+            self.full_parse = list(map(self.parse_line, re.split('[\n\r]+', data)))
+        else:
+            self.full_parse = []
+            
     def matcher(self, regexp, string):
         match = regexp.match(string)
         if not match:
@@ -56,49 +59,66 @@ class Parser:
     def parse_line(self, line):
         self.pos = 0
         self.line_len = len(line)
-        other = ""
-        if self.matcher(self.label, line):
-            parsed = [(self.LABEL, self.match)]
+        match = self.label.match(line)
+        if match:
+            parsed = [(self.LABEL, line[:match.end()])]
+            line = line[match.end():]
         else:
             parsed = []
-        while self.pos < self.line_len:
-            self.match = ""
-            code = self.NONE
-            for kw in self.kw2code.keys():
-                kwl = len(kw)
-                if self.pos + kwl <= self.line_len and kw.upper() == line[self.pos:self.pos + kwl].upper():
-                    self.match = line[self.pos:self.pos + kwl]
-                    self.pos += kwl
-                    code = self.kw2code[kw]
-                    if self.match.upper() in self.remarks:
-                        if other != "":
-                            parsed.append((self.OTHER, other))
-                            other = ""
-                        parsed.append((code, self.match))
-                        self.match = ""
-                        if self.pos != self.line_len:
-                            parsed.append((self.OTHER, line[self.pos:]))
-                            self.pos = self.line_len
-                    break
-            if self.match == "":
-                for regex in self.regexs:
-                    if self.matcher(regex[1], line[self.pos:]) and self.match != "":
-                        code = regex[0]
-                        break
-            if self.match != "":
-                if other != "":
-                    parsed.append((self.OTHER, other))
-                    other = ""
-                parsed.append((code, self.match))
-            elif self.pos < self.line_len:
-                other += line[self.pos]
-                self.pos += 1
-        if other != "":
-            parsed.append((self.OTHER, other))
-        if parsed:
-            self.full_parse.append(parsed)
-        return parsed
+        while line != "":
+            ml, match = self.match_kw(line)
+            if match:
+                #print(match)
+                line = line[ml:]
+                parsed.append(match)
+                if match[0]==self.kw2code['DATA']:
+                    m = re.match('[^:]+', line)
+                    if m:
+                        parsed.append((self.DATA, line[:m.end()]))
+                        line = line[m.end():]
+                if self.code2kw[match[0]] in self.remarks:
+                    parsed.append((self.REMARK, line))
+                    line = ""
+                continue
+            ml, match = self.match_re(line)
+            if match:
+                #print(match)
+                line = line[ml:]
+                parsed.append(match)
+                continue
+            
+            parsed.append((self.OTHER, line[0]))
+            line = line[1:]
 
+        #print(parsed)
+        tokens = parsed[:1]
+        for token in parsed[1:]:
+            if tokens[-1][0]==self.OTHER and token[0]==self.OTHER:
+                tokens[-1] = (self.OTHER, tokens[-1][1]+token[1])
+            else:
+                tokens.append(token)
+
+        #print(tokens)
+        return tokens
+
+    def match_kw(self, line):
+        ll = len(line)
+        for kw in self.kw2code.keys():
+            kl = len(kw)
+            if ll>=kl and kw==line[:kl].upper():
+                return kl, (self.kw2code[kw], line[:kl])
+        return 0, None
+
+    def match_re(self, line):
+        for (code, regex) in self.regexs:
+            match = regex.match(line)
+            if match:
+                if code==0 and match.end()==1:
+                    return 1, (ord(line[0]), line[0])
+                else:
+                    return match.end(), (code, line[:match.end()])
+        return 0, None
+        
     def no_ws(self):
         rv = []
         for line in self.full_parse:
