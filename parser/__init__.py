@@ -44,40 +44,39 @@ class Parser:
         for k in ['CLOAD', 'CSAVE', 'DLOAD', 'LOAD', 'SAVE']:
             if k in self.kw2code.keys():
                 self.ms.append(self.kw2code[k])
-        self.match = ""
-        self.pos = 0
-        self.line_len = 0
         self.full_parse = []
         if data is not None:
-            for line in re.split('[\n\r]+', data):
-                parse = self.parse_line(line)
-                if parse!=[]:
-                    self.full_parse.append(parse)
-            
-    def matcher(self, regexp, string):
-        match = regexp.match(string)
-        if not match:
-            return False
-        self.match = match[1]
-        self.pos += len(match[0])
-        return True
+            if 0x20 <= data[0] < 0x80 and 0x20 <= data[1] < 0x80:
+                data = "".join(map(chr, data))
+                for line in re.split('[\n\r]+', data):
+                    parse = self.parse_line(line)
+                    if parse:
+                        self.full_parse.append(parse)
+            elif data[0] == 0xff:
+                self.full_parse = self.parse_bin(data[3:])
+            elif data[0] == 0x55:
+                self.full_parse = self.parse_bin(data[9:])
+            else:
+                self.full_parse = self.parse_bin(data)
 
     def parse_line(self, line):
-        self.pos = 0
-        self.line_len = len(line)
         match = self.label.match(line)
         if match:
             parsed = [(self.LABEL, line[:match.end()])]
             line = line[match.end():]
         else:
             parsed = []
+        return parsed + self.parse_txt(line)
+
+    def parse_txt(self, line):
+        parsed = []
         while line != "":
             ml, match = self.match_kw(line)
             if match:
-                #print(match)
+                # print(match)
                 line = line[ml:]
                 parsed.append(match)
-                if match[0]==self.kw2code['DATA']:
+                if match[0] == self.kw2code['DATA']:
                     m = re.match('[^:]+', line)
                     if m:
                         parsed.append((self.DATA, line[:m.end()]))
@@ -88,36 +87,36 @@ class Parser:
                 continue
             ml, match = self.match_re(line)
             if match:
-                #print(match)
+                # print(match)
                 line = line[ml:]
                 parsed.append(match)
                 continue
-            
+
             parsed.append((self.OTHER, line[0]))
             line = line[1:]
 
-        #print(parsed)
+        # print(parsed)
         tokens = parsed[:1]
         for token in parsed[1:]:
-            if tokens[-1][0]==self.OTHER and token[0]==self.OTHER:
-                tokens[-1] = (self.OTHER, tokens[-1][1]+token[1])
-            elif token[0]==self.ID and token[1][0].upper()=='M' and (
+            if tokens[-1][0] == self.OTHER and token[0] == self.OTHER:
+                tokens[-1] = (self.OTHER, tokens[-1][1] + token[1])
+            elif token[0] == self.ID and token[1][0].upper() == 'M' and (
                     tokens[-1][0] in self.ms or
                     tokens[-1][0] == self.WS and tokens[-2][0] in self.ms):
                 tokens.append((self.OTHER, token[1][0]))
-                if len(token[1])>1:
+                if len(token[1]) > 1:
                     tokens.append((self.ID, token[1][1:]))
             else:
                 tokens.append(token)
 
-        #print(tokens)
+        # print(tokens)
         return tokens
 
     def match_kw(self, line):
         ll = len(line)
         for kw in self.kw2code.keys():
             kl = len(kw)
-            if ll>=kl and kw==line[:kl].upper():
+            if ll >= kl and kw == line[:kl].upper():
                 return kl, (self.kw2code[kw], line[:kl])
         return 0, None
 
@@ -125,12 +124,12 @@ class Parser:
         for (code, regex) in self.regexs:
             match = regex.match(line)
             if match:
-                if code==0 and match.end()==1:
+                if code == 0 and match.end() == 1:
                     return 1, (ord(line[0]), line[0])
                 else:
                     return match.end(), (code, line[:match.end()])
         return 0, None
-        
+
     def no_ws(self):
         rv = []
         for line in self.full_parse:
@@ -140,6 +139,34 @@ class Parser:
                     new_line.append(val)
             rv.append(new_line)
         return rv
+
+    def parse_bin(self, data):
+        parsed = []
+        while len(data) >= 4 and (data[0] != 0 or data[1] != 0):
+            line = [(self.LABEL, str(data[2] * 0x100 + data[3]))]
+            data = data[4:]
+            while len(data) >= 2 and data[0] != 0:
+                code2 = data[0] * 0x100 + data[1]
+                code1 = data[0]
+                if code2 in self.code2kw.keys():
+                    line.append((code2, self.code2kw[code2]))
+                    data = data[2:]
+                elif code1 in self.code2kw.keys():
+                    line.append((code1, self.code2kw[code1]))
+                    data = data[1:]
+                elif code1 < 0x80:
+                    text = ""
+                    ix = 0
+                    while 0x20<=data[ix] < 0x80 and data[ix + 1] != 0x83:
+                        text += chr(data[ix])
+                        ix += 1
+                    data = data[len(text):]
+                    line += self.parse_txt(text)
+                else:
+                    sys.stderr.write('Malformed file')
+            parsed.append(line)
+            data = data[1:]
+        return parsed
 
     def deparse(self, ws=False, case=UPPER):
         out = ""
@@ -155,7 +182,7 @@ class Parser:
                     ent = ent.lower()
                 if ws and ent[0].isalnum() and out and out[-1].isalnum():
                     ent = ' ' + ent
-                elif typ == self.LABEL and ix+1<len(line) and line[ix + 1][0] != self.WS:
+                elif typ == self.LABEL and ix + 1 < len(line) and line[ix + 1][0] != self.WS:
                     ent += ' '
                 out += ent
             out += "\n"

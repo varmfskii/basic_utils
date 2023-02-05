@@ -25,7 +25,7 @@ def main():
             astokens = False
         else:
             assert False, f'unhandled option: [{o}]'
-    pp = Parser(keywords, remarks, open(iname, 'r').read())
+    pp = Parser(keywords, remarks, open(iname, 'rb').read())
     pack(pp)
     if astokens:
         open(oname, 'wb').write(tokenize(pp, disk=disk))

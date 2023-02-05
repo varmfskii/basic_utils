@@ -12,7 +12,7 @@ def main():
     iname, oname, opts = options(sys.argv[1:], shortopts, longopts, usage, 'reid')
     for o, a in opts:
         assert False, f'unhandled option [{o}]'
-    pp = Parser(keywords, remarks, open(iname, 'r').read())
+    pp = Parser(keywords, remarks, open(iname, 'rb').read())
     reid(pp)
     open(oname, 'w').write(pp.deparse())
 

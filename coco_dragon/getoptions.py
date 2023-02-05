@@ -84,7 +84,7 @@ def options(args, sopts, lopts, localusage, ext):
             args = args[1:]
 
     if len(args) != 0:
-        usage()
+        usage(sys.stderr, '')
         sys.exit(2)
 
     return iname, oname, unused

@@ -26,7 +26,7 @@ def main():
                 sys.exit(2)
         else:
             assert False, "unhandled option"
-    pp = Parser(keywords, remarks, open(iname, 'r').read())
+    pp = Parser(keywords, remarks, open(iname, 'rb').read())
     renumber(pp, start=start, interval=interval)
     open(oname, 'w').write(pp.deparse())
 

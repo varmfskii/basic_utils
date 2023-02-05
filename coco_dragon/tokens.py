@@ -98,7 +98,7 @@ def detokenize(data):
             line += kw
 
         ix += 1
-        pp.parse_line(line)
+        pp.parse_txt(line)
         listing += line + '\n'
 
     return pp, listing

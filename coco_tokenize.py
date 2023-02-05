@@ -23,7 +23,7 @@ def main():
             ws = True
         else:
             assert False, f'unhandled option [{o}]'
-    pp = Parser(keywords, remarks, open(iname, 'r').read())
+    pp = Parser(keywords, remarks, open(iname, 'rb').read())
     open(oname, 'wb').write(tokenize(pp, ws=ws, disk=disk))
 
 

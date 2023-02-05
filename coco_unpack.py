@@ -13,7 +13,7 @@ def main():
     for o, a in opts:
         assert False, f'unhandled option: [{o}]'
 
-    pp = Parser(keywords, remarks, open(iname, 'r').read())
+    pp = Parser(keywords, remarks, open(iname, 'rb').read())
     splitlines(pp)
     open(oname, 'w').write(pp.deparse(ws=True))
 
