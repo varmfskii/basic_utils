@@ -29,7 +29,7 @@ class Parser:
         self.kw2code = {}
         self.code2kw = {}
         self.regexs = [
-            (0, re.compile('r[(),$:]')),
+            (0, re.compile(r'[(),$:]')),
             (self.WS, re.compile(' +')),
             (self.QUOTED, re.compile('"[^"]*"')),
             (self.NUM, re.compile(r'([0-9]+(\.[0-9]*)?|\.[0-9]+)(E[+-]?[0-9]+)?|&H[0-9A-F]+', flags=re.IGNORECASE)),
@@ -40,13 +40,19 @@ class Parser:
             self.kw2code[kw.upper()] = code
             self.code2kw[code] = kw
         self.remarks = remarks
+        self.ms = []
+        for k in ['CLOAD', 'CSAVE', 'DLOAD', 'LOAD', 'SAVE']:
+            if k in self.kw2code.keys():
+                self.ms.append(self.kw2code[k])
         self.match = ""
         self.pos = 0
         self.line_len = 0
+        self.full_parse = []
         if data is not None:
-            self.full_parse = list(map(self.parse_line, re.split('[\n\r]+', data)))
-        else:
-            self.full_parse = []
+            for line in re.split('[\n\r]+', data):
+                parse = self.parse_line(line)
+                if parse!=[]:
+                    self.full_parse.append(parse)
             
     def matcher(self, regexp, string):
         match = regexp.match(string)
@@ -95,6 +101,12 @@ class Parser:
         for token in parsed[1:]:
             if tokens[-1][0]==self.OTHER and token[0]==self.OTHER:
                 tokens[-1] = (self.OTHER, tokens[-1][1]+token[1])
+            elif token[0]==self.ID and token[1][0].upper()=='M' and (
+                    tokens[-1][0] in self.ms or
+                    tokens[-1][0] == self.WS and tokens[-2][0] in self.ms):
+                tokens.append((self.OTHER, token[1][0]))
+                if len(token[1])>1:
+                    tokens.append((self.ID, token[1][1:]))
             else:
                 tokens.append(token)
 
@@ -135,7 +147,7 @@ class Parser:
             if len(line) == 0:
                 continue
             if line[0][0] != self.LABEL:
-                out += '   '
+                out += ' '
             for ix, (typ, ent) in enumerate(line):
                 if case == self.UPPER and typ != self.QUOTED:
                     ent = ent.upper()
@@ -143,8 +155,7 @@ class Parser:
                     ent = ent.lower()
                 if ws and ent[0].isalnum() and out and out[-1].isalnum():
                     ent = ' ' + ent
-                elif typ == self.LABEL or (
-                        not ws and typ == self.ID and ix + 1 < len(line) and line[ix + 1][1][0].isalpha()):
+                elif typ == self.LABEL and ix+1<len(line) and line[ix + 1][0] != self.WS:
                     ent += ' '
                 out += ent
             out += "\n"

@@ -11,10 +11,10 @@ def tokenize_line(line):
         if token[0] == Parser.LABEL:  # line number
             val = int(token[1])
             tokens += [val // 256, val & 0xff]
-        elif token[0] > 255:  # tokenized extended keyword
+        elif token[0] > 511:  # tokenized extended keyword
             val = token[0]
             tokens += [val // 256, val & 0xff]
-        elif token[0] > 127:  # tokenized keyword
+        elif 128 <= token[0] < 256:  # tokenized keyword
             tokens.append(token[0])
         elif token[0] == Parser.QUOTED or token[0] == Parser.OTHER:  # explicit text
             for char in token[1]:
