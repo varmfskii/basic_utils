@@ -1,7 +1,3 @@
-keywords = keywords + [
-    ("PCOPY", 0xFEA5)
-]
-
 if __name__ == "__main__":
     import sys
 

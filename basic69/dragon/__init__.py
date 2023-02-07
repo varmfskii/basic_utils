@@ -1,7 +1,3 @@
-keywords = keywords + [
-    ("DEBUG", 0xFEA4),
-]
-
 if __name__ == "__main__":
     import sys
 

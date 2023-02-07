@@ -1,3 +1,5 @@
+from .basica import keywords
+
 keywords = keywords + [
     ("NOISE", 0xFEA4),
     ("PCOPY", 0xFEA5),
