@@ -1,25 +1,36 @@
 import sys
 
 from msbasic import options
-from commodore import c64, c128
+from commodore import base, basic4, basic10, basic35, c64_4, c128
+from commodore import atbasic, simons, speech, superbasic, turtle
 
 
 class Options(options.Options):
-    sopts = "b:hi:o:u"
-    lopts = ["basic=", "help", "input=", "output=", "text"]
-    usage = ('\t-b\t--basic=<dialect>\tbasic dialect\n'
-             '\t-h\t--help\t\t\tthis help\n'
-             '\t-i<n>\t--input=<file>\t\tinput file\n'
-             '\t-o<n>\t--output=<file>\t\toutput file\n'
-             '\t-u\t--text\t\t\ttext file\n')
-    keywords = c64.keywords
-    remarks = c64.remarks
+    sopts = 'b:' + super.sopts+"b:"
+    lopts = ['basic='] + super.lopts
+    usage = ['\t-b<d>\t--basic=<dialect>\tbasic dialect\n'] + super.usage
+    keywords = base.keywords
+    remarks = base.remarks
 
     def subopts(self, other):
         o, a = other
         dialects = {
-            "64": (c64.keywords, c64.remarks),
-            "128": (c128.keywords, c128.remarks),
+            "1.0": (base.keywords, base.remarks),
+            "2.0": (base.keywords, base.remarks),
+            "3.5": (basic35.keywords, base.remarks),
+            "4.0": (basic4.keywords, base.remarks),
+            "7.0": (c128.keywords, base.remarks),
+            "10.0": (basic10.keywords, base.remarks),
+            "pet": (base.keywords, base.remarks),
+            "vic20": (base.keywords, base.remarks),
+            "c64": (base.keywords, base.remarks),
+            "c128": (c128.keywords, base.remarks),
+            "c64_4.0": (c64_4.keywords, base.remarks),
+            "super": (superbasic.keywords, base.remarks),
+            "simons": (simons.keywords, base.remarks),
+            "speech": (speech.keywords, base.remarks),
+            "atbasic": (atbasic.keywords, base.remarks),
+            "turtle": (turtle.keywords, base.remarks),
         }
 
         if o in ["-b", "--basic"]:

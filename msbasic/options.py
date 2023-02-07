@@ -8,15 +8,17 @@ remarks = []
 class Options:
     astokens = True
     disk = True
-    sopts = "b:hi:o:u"
-    lopts = ["basic=", "help", "input=", "output=", "text"]
+    sopts = "hi:o:u"
+    lopts = ["help", "input=", "output=", "text"]
     iname = None
     oname = None
     unused = []
-    usage = ('\t-h\t--help\t\t\tthis help\n'
-             '\t-i<n>\t--input=<file>\t\tinput file\n'
-             '\t-o<n>\t--output=<file>\t\toutput file\n'
-             '\t-u\t--text\t\t\ttext file\n')
+    usage = [
+        '\t-h\t--help\t\t\tthis help\n',
+        '\t-i<n>\t--input=<file>\t\tinput file\n',
+        '\t-o<n>\t--output=<file>\t\toutput file\n',
+        '\t-u\t--text\t\t\ttext file\n'
+    ]
     keywords = []
     remarks = []
 
@@ -72,4 +74,7 @@ class Options:
         self.unused.append(other)
 
     def show_usage(self, fh):
-        fh.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n' + self.usage)
+        fh.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n')
+        self.usage.sort()
+        for line in self.usage:
+            fh.write(line)
