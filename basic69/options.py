@@ -6,6 +6,15 @@ from basic69.dragon import basic as dragon
 from basic69.dragon import ddos
 
 
+class DummyOptions:
+    def __init__(self, keywords, remarks, disk = False, address = 0x000, isdragon = False):
+        self.keywords = keywords
+        self.remarks = remarks
+        self.disk = disk
+        self.address = address
+        self.isdragon = isdragon
+
+
 class Options:
     astokens = True
     disk = True
@@ -23,6 +32,8 @@ class Options:
              '\t-u\t--text\t\t\ttext file\n')
     keywords = sdecb.keywords
     remarks = sdecb.remarks
+    isdragon = False
+    disk = True
     address = 0x2601
 
     def __init__(self, args, sopts='', lopts=None, usage='', ext='bas', astokens=True):
@@ -41,8 +52,8 @@ class Options:
             "decb": (decb.keywords, decb.remarks, False),
             "secb": (secb.keywords, secb.remarks, False),
             "sdecb": (sdecb.keywords, sdecb.remarks, False),
-            "dragon": (dragon.keywords, dragon.remarks, False),
-            "ddos": (ddos.keywords, ddos.remarks, False),
+            "dragon": (dragon.keywords, dragon.remarks, True),
+            "ddos": (ddos.keywords, ddos.remarks, True),
         }
         try:
             opts, args = getopt.getopt(args, self.sopts, self.lopts)

@@ -11,7 +11,7 @@ def main(args):
     for o, a in options.unused:
         assert False, f'unhandled option [{o}]'
 
-    pp, listing = detokenize(open(options.iname, 'rb').read())
+    pp, listing = detokenize(options, open(options.iname, 'rb').read())
     open(options.oname, 'w').write(listing)
 
 

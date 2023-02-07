@@ -50,19 +50,21 @@ def tokenize(pp, ws=False):
     return bytearray(tokenized)
 
 
-def detokenize(data):
+def detokenize(opts, data):
     data = list(data)
     listing = ""
 
     if data[0] == 0x55:
         ix = 9
-        pp = Parser(ddos.keywords, ddos.remarks)
+        opts.keywords, opts.remarks = ddos.keywords, ddos.remarks
+        pp = Parser(opts)
     elif data[0] == 0xff:
         ix = 3
-        pp = Parser(sdecb.keywords, sdecb.remarks)
+        opts.keywords, opts.remarks = sdecb.keywords, sdecb.remarks
     else:
         ix = 0
-        pp = Parser(sdecb.keywords, sdecb.remarks)
+        opts.keywords, opts.remarks = sdecb.keywords, sdecb.remarks
+    pp = Parser(opts)
 
     while data[ix] != 0x00 or data[ix + 1] != 0x00:
         line = f'{data[ix + 2] * 0x100 + data[ix + 3]} '

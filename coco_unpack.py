@@ -12,7 +12,7 @@ def main():
 
     pp = Parser(opts, open(opts.iname, 'rb').read())
     splitlines(pp)
-    open(opts.oname, 'w').write(pp.deparse())
+    open(opts.oname, 'w').write(pp.deparse(ws=True))
 
 
 if __name__ == "__main__":
