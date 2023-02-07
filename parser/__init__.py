@@ -101,8 +101,8 @@ class Parser:
             if tokens[-1][0] == self.OTHER and token[0] == self.OTHER:
                 tokens[-1] = (self.OTHER, tokens[-1][1] + token[1])
             elif token[0] == self.ID and token[1][0].upper() == 'M' and (
-                    (len(tokens)>=1 and tokens[-1][0] in self.ms) or
-                    (len(tokens)>=2 and tokens[-1][0] == self.WS and tokens[-2][0] in self.ms)):
+                    (len(tokens) >= 1 and tokens[-1][0] in self.ms) or
+                    (len(tokens) >= 2 and tokens[-1][0] == self.WS and tokens[-2][0] in self.ms)):
                 tokens.append((self.OTHER, token[1][0]))
                 if len(token[1]) > 1:
                     tokens.append((self.ID, token[1][1:]))

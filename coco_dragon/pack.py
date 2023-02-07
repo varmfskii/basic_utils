@@ -2,6 +2,7 @@ from coco_dragon.labels import gettgtlabs, cleanlabs, renumber
 from coco_dragon.variables import reid
 from parser import Parser
 
+
 def noremarks(pp):
     # remove all "unnecessary" remarks
     labels = gettgtlabs(pp)
@@ -34,11 +35,11 @@ def mergelines(pp, maxlen=0):
 
     for line in pp.full_parse:
         next_len = linelen(line)
-        if line[0][0] == pp.LABEL or 0<maxlen<old_len+1+next_len:
+        if line[0][0] == pp.LABEL or 0 < maxlen < old_len + 1 + next_len:
             if nextline:
                 lines.append(nextline)
             nextline = line
-            old_len = 5+next_len
+            old_len = 5 + next_len
         else:
             if nextline:
                 nextline += [(pp.SEP, ":")] + line
@@ -71,26 +72,25 @@ def splitlines(pp):
     pp.full_parse = lines
 
 
-
 def linelen(line):
-    if len(line)==0:
+    if len(line) == 0:
         return 0
     if line[0][0] == Parser.LABEL:
         line = line[1:]
     len_acc = 0
     for (c, w) in line:
-        if 0x80<=c<0x100:
+        if 0x80 <= c < 0x100:
             len_acc += 1
-        elif c<0x200:
+        elif c < 0x200:
             len_acc += len(w)
-        elif c<0x10000:
+        elif c < 0x10000:
             len_acc += 2
         else:
             len_acc += 3
-            
+
     return len_acc
-        
-    
+
+
 def pack(pp, maxline=0):
     # pack a basic program
     pp.full_parse = pp.no_ws()

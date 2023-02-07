@@ -15,15 +15,15 @@ def tokenize_line(line):
             # explicit text
             for char in w:
                 tokens.append(ord(char))
-        elif c < 0x100:  # tokenized keyword
-            tokens.append(c)
-        elif c < 0x200:
+        elif c < 0x80 or 0x100 <= c < 0x200:
             # code text, interpreter only recognizes uppercase
             for char in w.upper():
                 tokens.append(ord(char))
+        elif c < 0x100:  # tokenized keyword
+            tokens.append(c)
         elif c < 0x10000:  # tokenized extended keyword
-            tokens += [c // 256, val & 0xff]
-        else: # three byte keyword (not coco or dragon)
+            tokens += [c // 256, c & 0xff]
+        else:  # three byte keyword (not coco or dragon)
             tokens += [c // 0x10000, (c // 0x100) & 0xff, c & 0xff]
     tokens.append(0)
     return tokens

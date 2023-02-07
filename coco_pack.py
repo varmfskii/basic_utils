@@ -13,7 +13,7 @@ def main():
     for o, a in opts.unused:
         if o in ["-m", "--maxline"]:
             maxline = int(a)
-            if maxline<0:
+            if maxline < 0:
                 sys.stderr.write(f'length must be non-negative\n')
                 sys.exit(2)
         else:

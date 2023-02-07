@@ -6,9 +6,6 @@ from parser import Parser
 
 
 def main():
-    usage = ''
-    shortopts = ''
-    longopts = []
     opts = Options(sys.argv[1:], ext='reid')
     for o, a in opts.unused:
         assert False, f'unhandled option [{o}]'
