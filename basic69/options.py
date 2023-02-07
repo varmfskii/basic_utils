@@ -1,14 +1,9 @@
 import getopt
 import sys
 
-from msbasic.coco_basic import ecb, decb, secb, sdecb
-from basic69.coco import cb
+from basic69.coco import cb, ecb, decb, secb, sdecb
 from basic69.dragon import basic as dragon
 from basic69.dragon import ddos
-
-keywords = sdecb.keywords
-remarks = sdecb.remarks
-isdragon = False
 
 
 class Options:
@@ -26,12 +21,14 @@ class Options:
              '\t-i<n>\t--input=<file>\t\tinput file\n'
              '\t-o<n>\t--output=<file>\t\toutput file\n'
              '\t-u\t--text\t\t\ttext file\n')
+    keywords = sdecb.keywords
+    remarks = sdecb.remarks
+    address = 0x2601
 
-    def __init__(self, args, sopts='', lopts=[], usage='', ext='bas', astokens=True):
+    def __init__(self, args, sopts='', lopts=None, usage='', ext='bas', astokens=True):
         # parse options for msbasic utils including globally available options
-        global keywords
-        global remarks
-        global isdragon
+        if lopts is None:
+            lopts = []
 
         self.astokens = astokens
         self.sopts += sopts
@@ -64,7 +61,7 @@ class Options:
                 self.oname = a
             elif o in ["-b", "--basic"]:
                 if a in dialects.keys():
-                    keywords, remarks, isdragon = dialects[a]
+                    self.keywords, self.remarks, self.isdragon = dialects[a]
                 elif a == "help":
                     print("Supported dialects:")
                     for key in dialects.keys():
@@ -84,6 +81,13 @@ class Options:
                 self.astokens = False
             else:
                 self.unused.append((o, a))
+
+        if self.isdragon:
+            self.address = 0x2401
+        elif self.disk:
+            self.address = 0x2601
+        else:
+            self.address = 0x25fe
 
         if self.iname is None:
             if len(args) == 0:

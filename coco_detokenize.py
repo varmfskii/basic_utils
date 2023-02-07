@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
-from coco_dragon import Options, detokenize
+from basic69 import Options
+from msbasic import detokenize
 
 
 def main(args):

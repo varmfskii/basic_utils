@@ -1,4 +1,6 @@
-keywords = [
+from msbasic import options
+
+kw = [
     ("END", 0x81),
     ("FOR", 0x82),
     ("NEXT", 0x83),
@@ -157,7 +159,16 @@ keywords = [
     ("BUTTON", 0xFDB6)
 ]
 
-remarks = ["REM", "'"]
+rem = ["REM", "'"]
+
+
+class Options(options.Options):
+    global kw
+    global rem
+
+    keywords = kw
+    remarks = rem
+
 
 if __name__ == "__main__":
     import sys

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
-from coco_dragon import Options, keywords, remarks, pack, tokenize
-from parser import Parser
+from msbasic import pack, tokenize
+from basic69 import Options, Parser
 
 
 def main():
@@ -18,10 +18,10 @@ def main():
                 sys.exit(2)
         else:
             assert False, f'unhandled option: [{o}]'
-    pp = Parser(keywords, remarks, open(opts.iname, 'rb').read())
+    pp = Parser(opts, open(opts.iname, 'rb').read())
     pack(pp, maxline)
     if opts.astokens:
-        open(opts.oname, 'wb').write(tokenize(pp, disk=opts.disk))
+        open(opts.oname, 'wb').write(tokenize(pp))
     else:
         open(opts.oname, 'w').write(pp.deparse())
 

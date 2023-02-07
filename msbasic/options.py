@@ -1,10 +1,8 @@
 import getopt
 import sys
 
-from commodore import c64, c128
-
-keywords = c64.keywords
-remarks = c64.remarks
+keywords = []
+remarks = []
 
 
 class Options:
@@ -15,28 +13,23 @@ class Options:
     iname = None
     oname = None
     unused = []
-    usage = ('\t-b\t--basic=<dialect>\tbasic dialect\n'
-             '\t-h\t--help\t\t\tthis help\n'
+    usage = ('\t-h\t--help\t\t\tthis help\n'
              '\t-i<n>\t--input=<file>\t\tinput file\n'
              '\t-o<n>\t--output=<file>\t\toutput file\n'
              '\t-u\t--text\t\t\ttext file\n')
+    keywords = []
+    remarks = []
 
     def __init__(self, args, sopts='', lopts=None, usage='', ext='bas', astokens=True):
         # parse options for msbasic utils including globally available options
         if lopts is None:
             lopts = []
-        global keywords
-        global remarks
 
         self.astokens = astokens
         self.sopts += sopts
         self.lopts += lopts
         self.usage += usage
 
-        dialects = {
-            "64": (c64.keywords, c64.remarks, False),
-            "128": (c128.keywords, c128.remarks, False),
-        }
         try:
             opts, args = getopt.getopt(args, self.sopts, self.lopts)
         except getopt.GetoptError as err:
@@ -52,28 +45,10 @@ class Options:
                 self.iname = a
             elif o in ["-o", "--output"]:
                 self.oname = a
-            elif o in ["-b", "--basic"]:
-                if a in dialects.keys():
-                    keywords, remarks, isdragon = dialects[a]
-                elif a == "help":
-                    print("Supported dialects:")
-                    for key in dialects.keys():
-                        print(f'\t{key}')
-                    sys.exit(0)
-                else:
-                    sys.stderr.write(f'Unsupported dialect: {a}\n')
-                    sys.stderr.write("--basic=help to list available dialects")
-                    sys.exit(2)
-            if o in ["-c", "--cassette"]:
-                self.disk = False
-                self.astokens = True
-            elif o in ["-d", "--disk"]:
-                self.disk = True
-                self.astokens = True
             elif o in ["-u", "--text"]:
                 self.astokens = False
             else:
-                self.unused.append((o, a))
+                self.subopts((o, a))
 
         if self.iname is None:
             if len(args) == 0:
@@ -92,6 +67,9 @@ class Options:
         if len(args) != 0:
             self.show_usage(sys.stderr)
             sys.exit(2)
+
+    def subopts(self, other):
+        self.unused.append(other)
 
     def show_usage(self, fh):
         fh.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n' + self.usage)

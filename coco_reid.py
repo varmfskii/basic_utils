@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 import sys
 
-from coco_dragon import Options, keywords, remarks, reid, tokenize
-from parser import Parser
+from msbasic import reid, tokenize
+from basic69 import Options, Parser
 
 
 def main():
     opts = Options(sys.argv[1:], ext='reid')
     for o, a in opts.unused:
         assert False, f'unhandled option [{o}]'
-    pp = Parser(keywords, remarks, open(opts.iname, 'rb').read())
+    pp = Parser(opts, open(opts.iname, 'rb').read())
     reid(pp)
     if opts.astokens:
-        open(opts.oname, 'wb').write(tokenize(pp, disk=opts.disk))
+        open(opts.oname, 'wb').write(tokenize(pp))
     else:
         open(opts.oname, 'w').write(pp.deparse())
 

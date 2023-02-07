@@ -1,4 +1,4 @@
-LIBS = coco_dragon parser
+LIBS = basic69 msbasic
 BINS = coco_detokenize.py coco_pack.py coco_reid.py coco_renumber.py	\
 	coco_tokenize.py coco_unpack.py
 

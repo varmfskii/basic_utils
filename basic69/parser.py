@@ -25,7 +25,12 @@ class Parser:
     NOCASE = 0
     UPPER = 1
 
-    def __init__(self, keywords, remarks, data=None):
+    def __init__(self, opts, data=None):
+        keywords = opts.keywords
+        remarks = opts.remarks
+        self.isdragon = opts.isdragon
+        self.disk = opts.disk
+        self.address = opts.address
         self.kw2code = {}
         self.code2kw = {}
         self.regexs = [

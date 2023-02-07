@@ -2,8 +2,18 @@
 
 from sys import argv
 
-from coco_dragon import sdecb
-from parser import Parser
+from basic69.coco import sdecb
+from basic69 import Parser
+
+
+class Options:
+    keywords = sdecb.keywords
+    remarks = sdecb.remarks
+    disk = True
+    isdragon = False
+
+    def __init__(self):
+        self.address = 0x0000
 
 
 def main(args):
@@ -14,7 +24,8 @@ def main(args):
 
 
 def parse_test(data):
-    pp = Parser(sdecb.keywords, sdecb.remarks, data)
+    opts = Options()
+    pp = Parser(opts, data)
     for line in pp.full_parse:
         print(line)
 

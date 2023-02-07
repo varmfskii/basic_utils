@@ -1,7 +1,6 @@
-from coco_dragon.coco_basic import sdecb
-from coco_dragon.dragon_basic import ddos
-from coco_dragon.options import isdragon
-from parser import Parser
+from basic69.coco import sdecb
+from basic69.dragon import ddos
+from basic69 import Parser
 
 
 def tokenize_line(line):
@@ -29,28 +28,23 @@ def tokenize_line(line):
     return tokens
 
 
-def tokenize(pp, ws=False, disk=True):
+def tokenize(pp, ws=False):
     # convert a parsed file into tokenized BASIC file
     if ws:
         parsed = pp.full_parse
     else:
         parsed = pp.no_ws()
     tokenized = []
-    if isdragon:
-        address = 0x2401
-    elif disk:
-        address = 0x2601
-    else:
-        address = 0x25fe
+    address = pp.address
     for line in parsed:
         line_tokens = tokenize_line(line)
         address += 2 + len(line_tokens)
         tokenized += [address // 0x100, address & 0xff] + line_tokens
     tokenized += [0, 0]
-    if isdragon:
+    if pp.isdragon:
         val = len(tokenized)
         tokenized = [0x55, 0x01, 0x24, 0x01, val // 256, val & 0xff, 0x8b, 0x8d, 0xaa] + tokenized
-    elif disk:
+    elif pp.disk:
         val = len(tokenized)
         tokenized = [0xff, val // 0x100, val & 0xff] + tokenized
     return bytearray(tokenized)

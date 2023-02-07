@@ -1,25 +1,20 @@
 import getopt
 import sys
 
-from .basica import keywords
-from .basica import remarks
-
-keywords = .basica.keywords
-remarks = .basica.remarks
-isdragon = False
+from gw_basic import basica, ega, pcjr, sperry
 
 
 class Options:
+    keywords = basica.keywords
+    remarks = basica.remarks
     astokens = True
     disk = True
-    sopts = "b:cdhi:o:u"
-    lopts = ["basic=", "cassette", "disk", "help", "input=", "output=", "text"]
+    sopts = "b:hi:o:u"
+    lopts = ["basic=", "help", "input=", "output=", "text"]
     iname = None
     oname = None
     unused = []
     usage = ('\t-b\t--basic=<dialect>\tbasic dialect\n'
-             '\t-c\t--casette\t\ttokenized cassette file\n'
-             '\t-d\t--disk\t\t\ttokenized disk file (default)\n'
              '\t-h\t--help\t\t\tthis help\n'
              '\t-i<n>\t--input=<file>\t\tinput file\n'
              '\t-o<n>\t--output=<file>\t\toutput file\n'
@@ -29,9 +24,6 @@ class Options:
         # parse options for msbasic utils including globally available options
         if lopts is None:
             lopts = []
-        global keywords
-        global remarks
-        global isdragon
 
         self.astokens = astokens
         self.sopts += sopts
@@ -39,13 +31,10 @@ class Options:
         self.usage += usage
 
         dialects = {
-            "cb": (cb.keywords, cb.remarks, False),
-            "ecb": (ecb.keywords, ecb.remarks, False),
-            "decb": (decb.keywords, decb.remarks, False),
-            "secb": (secb.keywords, secb.remarks, False),
-            "sdecb": (sdecb.keywords, sdecb.remarks, False),
-            "dragon": (dragon.keywords, dragon.remarks, False),
-            "ddos": (ddos.keywords, ddos.remarks, False),
+            "basica": (basica.keywords, basica.remarks),
+            "ega": (ega.keywords, basica.remarks),
+            "pcjr": (pcjr.keywords, basica.remarks),
+            "sperry": (sperry.keywords, basica.remarks),
         }
         try:
             opts, args = getopt.getopt(args, self.sopts, self.lopts)
@@ -64,7 +53,7 @@ class Options:
                 self.oname = a
             elif o in ["-b", "--basic"]:
                 if a in dialects.keys():
-                    keywords, remarks, isdragon = dialects[a]
+                    self.keywords, self.remarks = dialects[a]
                 elif a == "help":
                     print("Supported dialects:")
                     for key in dialects.keys():

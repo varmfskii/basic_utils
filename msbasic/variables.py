@@ -1,4 +1,4 @@
-from parser import Parser
+from basic69 import Parser
 
 
 class IDError(RuntimeError):
