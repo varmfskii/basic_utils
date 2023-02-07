@@ -1,7 +1,7 @@
 import getopt
 import sys
 
-from gw_basic import basica, ega, pcjr, sperry
+from gwbasic import basica, ega, pcjr, sperry
 
 
 class Options:
