@@ -22,7 +22,7 @@ class Options:
     keywords = []
     remarks = []
 
-    def __init__(self, args, sopts='', lopts=None, usage='', ext='bas', astokens=True):
+    def __init__(self, args, sopts='', lopts=None, usage=[], ext='bas', astokens=True):
         # parse options for msbasic utils including globally available options
         if lopts is None:
             lopts = []

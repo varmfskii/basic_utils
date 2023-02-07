@@ -6,7 +6,7 @@ from msbasic import pack
 
 
 def main():
-    usage = '\t-m\t--maxline=<num>\t\tmaximum tokenized line length\n'
+    usage = ["\t-m\t--maxline=<num>\t\tmaximum tokenized line length\n"]
     lopts = ["maxline="]
     opts = Options(sys.argv[1:], sopts='m:', lopts=lopts, usage=usage, ext='pack', astokens=True)
     maxline = 0

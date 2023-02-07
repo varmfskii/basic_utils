@@ -7,7 +7,7 @@ from msbasic import splitlines
 
 def main():
     lo = ["no-whitespace"]
-    us = "\t-n\t--no-whitespace\tDon't add extra whitespace\n"
+    us = ["\t-n\t--no-whitespace\t\tdo not add extra whitespace\n"]
     opts = Options(sys.argv[1:], sopts='n', lopts=lo, usage=us, ext='txt')
     ws = True
     for o, a in opts.unused:

@@ -5,7 +5,7 @@ from basic69 import Options, Parser, tokenize
 
 
 def main():
-    usage = '\t-w\t--whitespace\t\tdo not preserve whitespace\n'
+    usage = ['\t-w\t--whitespace\t\tdo not preserve whitespace\n']
     lopts = ["whitespace"]
     opts = Options(sys.argv[1:], sopts='w', lopts=lopts, usage=usage, ext='tok', astokens=True)
     ws = True

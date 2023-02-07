@@ -6,8 +6,8 @@ from msbasic import renumber
 
 
 def main():
-    usage = ('\t-s<n>\t--start=<num>\t\tstarting line number\n'
-             '\t-v<n>\t--interval=<num>\tinterval between line numbers\n')
+    usage = ['\t-s<n>\t--start=<num>\t\tstarting line number\n',
+             '\t-v<n>\t--interval=<num>\tinterval between line numbers\n']
     lopts = ["start=", "interval="]
     opts = Options(sys.argv[1:], sopts='s:v:', lopts=lopts, usage=usage, ext='renum')
     start = 10
