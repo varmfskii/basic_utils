@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-from basic69 import Options
-from msbasic import detokenize
+from basic69 import Options, detokenize
 
 
 def main(args):

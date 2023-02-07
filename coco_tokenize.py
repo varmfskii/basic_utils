@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-from msbasic import tokenize
-from basic69 import Options, Parser
+from basic69 import Options, Parser, tokenize
 
 
 def main():

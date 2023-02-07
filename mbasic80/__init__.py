@@ -1,4 +1,4 @@
-from msbasic import options
+from msbasic.options import Options as BaseOptions
 
 kw = [
     ("END", 0x81),
@@ -162,7 +162,7 @@ kw = [
 rem = ["REM", "'"]
 
 
-class Options(options.Options):
+class Options(BaseOptions):
     global kw
     global rem
 

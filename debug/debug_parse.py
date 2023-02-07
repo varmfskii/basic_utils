@@ -2,8 +2,8 @@
 
 from sys import argv
 
-from basic69.coco import sdecb
 from basic69 import Parser
+from basic69.coco import sdecb
 
 
 class Options:

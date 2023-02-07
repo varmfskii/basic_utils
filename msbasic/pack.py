@@ -1,6 +1,5 @@
 from msbasic.labels import gettgtlabs, cleanlabs, renumber
 from msbasic.variables import reid
-from basic69 import Parser
 
 
 def noremarks(pp):
@@ -34,7 +33,7 @@ def mergelines(pp, maxlen=0):
     old_len = 0
 
     for line in pp.full_parse:
-        next_len = linelen(line)
+        next_len = linelen(line, pp)
         if line[0][0] == pp.LABEL or 0 < maxlen < old_len + 1 + next_len:
             if nextline:
                 lines.append(nextline)
@@ -72,10 +71,10 @@ def splitlines(pp):
     pp.full_parse = lines
 
 
-def linelen(line):
+def linelen(line, pp):
     if len(line) == 0:
         return 0
-    if line[0][0] == Parser.LABEL:
+    if line[0][0] == pp.LABEL:
         line = line[1:]
     len_acc = 0
     for (c, w) in line:

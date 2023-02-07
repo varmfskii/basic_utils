@@ -21,4 +21,3 @@ keywords = base.keywords + [
     ("graphic", 0xDE),
     ("paint", 0xDF),
 ]
-

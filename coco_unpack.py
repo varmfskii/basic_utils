@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
-from msbasic import splitlines
 from basic69 import Options, Parser
+from msbasic import splitlines
 
 
 def main():
