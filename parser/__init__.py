@@ -46,7 +46,7 @@ class Parser:
                 self.ms.append(self.kw2code[k])
         self.full_parse = []
         if data is not None:
-            if 0x20 <= data[0] < 0x80 and 0x20 <= data[1] < 0x80:
+            if data[0] < 0x80 and data[1] < 0x80:
                 data = "".join(map(chr, data))
                 for line in re.split('[\n\r]+', data):
                     parse = self.parse_line(line)
@@ -101,8 +101,8 @@ class Parser:
             if tokens[-1][0] == self.OTHER and token[0] == self.OTHER:
                 tokens[-1] = (self.OTHER, tokens[-1][1] + token[1])
             elif token[0] == self.ID and token[1][0].upper() == 'M' and (
-                    tokens[-1][0] in self.ms or
-                    tokens[-1][0] == self.WS and tokens[-2][0] in self.ms):
+                    (len(tokens)>=1 and tokens[-1][0] in self.ms) or
+                    (len(tokens)>=2 and tokens[-1][0] == self.WS and tokens[-2][0] in self.ms)):
                 tokens.append((self.OTHER, token[1][0]))
                 if len(token[1]) > 1:
                     tokens.append((self.ID, token[1][1:]))
@@ -157,7 +157,7 @@ class Parser:
                 elif code1 < 0x80:
                     text = ""
                     ix = 0
-                    while 0x20<=data[ix] < 0x80 and data[ix + 1] != 0x83:
+                    while 0x20 <= data[ix] < 0x80 and data[ix + 1] != 0x83:
                         text += chr(data[ix])
                         ix += 1
                     data = data[len(text):]

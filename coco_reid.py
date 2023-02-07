@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-from coco_dragon import options, keywords, remarks, reid
+from coco_dragon import Options, keywords, remarks, reid, tokenize
 from parser import Parser
 
 
@@ -9,12 +9,15 @@ def main():
     usage = ''
     shortopts = ''
     longopts = []
-    iname, oname, opts = options(sys.argv[1:], shortopts, longopts, usage, 'reid')
-    for o, a in opts:
+    opts = Options(sys.argv[1:], ext='reid')
+    for o, a in opts.unused:
         assert False, f'unhandled option [{o}]'
-    pp = Parser(keywords, remarks, open(iname, 'rb').read())
+    pp = Parser(keywords, remarks, open(opts.iname, 'rb').read())
     reid(pp)
-    open(oname, 'w').write(pp.deparse())
+    if opts.astokens:
+        open(opts.oname, 'wb').write(tokenize(pp, disk=opts.disk))
+    else:
+        open(opts.oname, 'w').write(pp.deparse())
 
 
 if __name__ == "__main__":

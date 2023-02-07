@@ -1,27 +1,30 @@
 from coco_dragon.coco_basic import sdecb
 from coco_dragon.dragon_basic import ddos
-from coco_dragon.getoptions import isdragon
+from coco_dragon.options import isdragon
 from parser import Parser
 
 
 def tokenize_line(line):
     # convert a parsed line into the tokenized format for a BASIC file
     tokens = []
-    for token in line:
-        if token[0] == Parser.LABEL:  # line number
-            val = int(token[1])
+    for (c, w) in line:
+        if c == Parser.LABEL:  # line number
+            val = int(w)
             tokens += [val // 256, val & 0xff]
-        elif token[0] > 511:  # tokenized extended keyword
-            val = token[0]
-            tokens += [val // 256, val & 0xff]
-        elif 128 <= token[0] < 256:  # tokenized keyword
-            tokens.append(token[0])
-        elif token[0] == Parser.QUOTED or token[0] == Parser.OTHER:  # explicit text
-            for char in token[1]:
+        elif c in [Parser.QUOTED, Parser.REMARK, Parser.DATA]:
+            # explicit text
+            for char in w:
                 tokens.append(ord(char))
-        else:
-            for char in token[1].upper():  # code text, interpreter only recognizes uppercase
+        elif c < 0x100:  # tokenized keyword
+            tokens.append(c)
+        elif c < 0x200:
+            # code text, interpreter only recognizes uppercase
+            for char in w.upper():
                 tokens.append(ord(char))
+        elif c < 0x10000:  # tokenized extended keyword
+            tokens += [c // 256, val & 0xff]
+        else: # three byte keyword (not coco or dragon)
+            tokens += [c // 0x10000, (c // 0x100) & 0xff, c & 0xff]
     tokens.append(0)
     return tokens
 

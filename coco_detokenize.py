@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 import sys
 
-from coco_dragon import options, detokenize
+from coco_dragon import Options, detokenize
 
 
 def main(args):
-    usage = ''
-    shortopts = ''
-    longopts = []
-    iname, oname, opts = options(args, shortopts, longopts, usage, 'txt')
+    options = Options(args, ext='txt')
 
-    for o, a in opts:
+    for o, a in options.unused:
         assert False, f'unhandled option [{o}]'
 
-    pp, listing = detokenize(open(iname, 'rb').read())
-    open(oname, 'w').write(listing)
+    pp, listing = detokenize(open(options.iname, 'rb').read())
+    open(options.oname, 'w').write(listing)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 from coco_dragon.labels import gettgtlabs, cleanlabs, renumber
 from coco_dragon.variables import reid
-
+from parser import Parser
 
 def noremarks(pp):
     # remove all "unnecessary" remarks
@@ -25,21 +25,27 @@ def noremarks(pp):
     pp.full_parse = lines
 
 
-def mergelines(pp):
-    # merge lines in program together where possible
+def mergelines(pp, maxlen=0):
+    # merge lines in program together where possible to a limit of
+    # maxlen (if maxlen is not 0)
     lines = []
     nextline = []
+    old_len = 0
 
     for line in pp.full_parse:
-        if line[0][0] == pp.LABEL:
+        next_len = linelen(line)
+        if line[0][0] == pp.LABEL or 0<maxlen<old_len+1+next_len:
             if nextline:
                 lines.append(nextline)
             nextline = line
+            old_len = 5+next_len
         else:
             if nextline:
                 nextline += [(pp.SEP, ":")] + line
+                old_len += 1 + next_len
             else:
                 nextline = line
+                old_len = 5 + next_len
         for token in line:
             if token[0] in [pp.kw2code["REM"], pp.kw2code["'"], pp.kw2code["IF"]]:
                 lines.append(nextline)
@@ -65,11 +71,31 @@ def splitlines(pp):
     pp.full_parse = lines
 
 
-def pack(pp):
+
+def linelen(line):
+    if len(line)==0:
+        return 0
+    if line[0][0] == Parser.LABEL:
+        line = line[1:]
+    len_acc = 0
+    for (c, w) in line:
+        if 0x80<=c<0x100:
+            len_acc += 1
+        elif c<0x200:
+            len_acc += len(w)
+        elif c<0x10000:
+            len_acc += 2
+        else:
+            len_acc += 3
+            
+    return len_acc
+        
+    
+def pack(pp, maxline=0):
     # pack a basic program
     pp.full_parse = pp.no_ws()
     reid(pp)
     cleanlabs(pp)
     noremarks(pp)
-    mergelines(pp)
+    mergelines(pp, maxline)
     renumber(pp, start=0, interval=1)

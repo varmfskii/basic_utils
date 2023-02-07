@@ -70,10 +70,7 @@ def getidmap(oldids, pp):
     newids = {}
     newid = ''
     for oldid in oldids:
-        if oldid[0] == 'M' and len(oldid) < 3:
-            newid = oldid
-        else:
-            newid = nextid(newid)
+        newid = nextid(newid)
         while newid in pp.kw2code.keys():
             newid = nextid(newid)
         newids[oldid] = newid

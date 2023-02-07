@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 import sys
 
-from coco_dragon import options, keywords, remarks, renumber
+from coco_dragon import Options, keywords, remarks, renumber, tokenize
 from parser import Parser
 
 
 def main():
     usage = ('\t-s<n>\t--start=<num>\t\tstarting line number\n'
              '\t-v<n>\t--interval=<num>\tinterval between line numbers\n')
-    shortopts = 's:v:'
-    longopts = ["start=", "interval="]
-    iname, oname, opts = options(sys.argv[1:], shortopts, longopts, usage, 'renum')
+    lopts = ["start=", "interval="]
+    opts = Options(sys.argv[1:], sopts='s:v:', lopts=lopts, usage=usage, ext='renum')
     start = 10
     interval = 10
-    for o, a in opts:
+    for o, a in opts.unused:
         if o in ["-s", "--start"]:
             start = int(a)
             if start < 0 or start > 32767:
@@ -26,9 +25,12 @@ def main():
                 sys.exit(2)
         else:
             assert False, "unhandled option"
-    pp = Parser(keywords, remarks, open(iname, 'rb').read())
+    pp = Parser(keywords, remarks, open(opts.iname, 'rb').read())
     renumber(pp, start=start, interval=interval)
-    open(oname, 'w').write(pp.deparse())
+    if opts.astokens:
+        open(opts.oname, 'wb').write(tokenize(pp, disk=opts.disk))
+    else:
+        open(opts.oname, 'w').write(pp.deparse())
 
 
 if __name__ == "__main__":
