@@ -2,8 +2,9 @@
 import sys
 import re
 from basic69.coco import sdecb
+from enum import Enum
 
-class Parser:
+class Token(Enum):
     NONE = 256
     LABEL = 257
     TOKEN = 258
@@ -18,7 +19,12 @@ class Parser:
     HEX = 267
     FLOAT = 268
     WS = 269
+    KW = 270
     
+    def __repr__(self):
+        return self.name
+    
+class Parser:
     code2kw = {}
     kw2code = {}
     full_parse = None
@@ -50,9 +56,9 @@ class Parser:
         while(data[0]!=0 or data[1]!=0):
             data = data[2:]
             if self.be:
-                line = [(self.LABEL, str(data[0]*0x100+data[1]))]
+                line = [(Token.LABEL, str(data[0]*0x100+data[1]))]
             else:
-                line = [(self.LABEL, str(data[0]+data[1]*0x100))]
+                line = [(Token.LABEL, str(data[0]+data[1]*0x100))]
             data = data[2:]
             while data[0]!=0:
                 c1 = data[0]
@@ -64,32 +70,32 @@ class Parser:
                     c3 = c2*0x100+data[2]
                 else:
                     c3 = c2*0x100
-                if line[-1][0] in self.rem_codes:
+                if line[-1][0]==Token.KW and line[-1][1].upper() in ["'", "REM"]:
                     rem = ''
                     while data[0]!=0:
                         rem += chr(data[0])
                         data = data[1:]
                     if rem!='':
-                        line.append((self.REM, rem))
-                elif line[-1][0] == self.kw2code['DATA']:
+                        line.append((Token.REM, rem))
+                elif line[-1][0]==Token.KW and line[-1][2] == self.kw2code['DATA']:
                     data_data = ''
                     while data[0]!=0 and data[0]!=ord(':'):
                         data_data += chr(data[0])
                         data = data[1:]
                     if data!='':
-                        line.append((self.DATA, data_data))
+                        line.append((Token.DATA, data_data))
                 elif c3 in self.code2kw.keys():
                     # 3-byte token
                     data = data[3:]
-                    line.append((c3, self.code2kw[c3]))
+                    line.append((Token.KW, self.code2kw[c3], c3))
                 elif c2 in self.code2kw.keys():
                     # 2-byte token
                     data = data[2:]
-                    line.append((c2, self.code2kw[c2]))
+                    line.append((Token.KW, self.code2kw[c2], c2))
                 elif c1 in self.code2kw.keys():
                     # 1-byte token
                     data = data[1:]
-                    line.append((c1, self.code2kw[c1]))
+                    line.append((Token.KW, self.code2kw[c1], c1))
                 elif 'A'<=chr(c1)<='Z' or 'a'<=chr(c1)<='z':
                     # id
                     id=''
@@ -97,7 +103,7 @@ class Parser:
                         id+=chr(data[0])
                         data=data[1:]
                         c1 = data[0]
-                    line.append((self.ID, id))
+                    line.append((Token.ID, id))
                 elif c1==ord('"'):
                     # quoted
                     quote = '"'
@@ -108,41 +114,55 @@ class Parser:
                     if data[0]!=0:
                         quote += '"'
                         data=data[1:]
-                        line.append((self.QUOTED, quote))
-                elif line[-1][0]==self.NONE:
+                        line.append((Token.QUOTED, quote))
+                elif line[-1][0]==Token.NONE:
                     data = data[1:]
-                    line[-1] = (self.NONE, line[-1][1]+chr(c1))
+                    line[-1] = (Token.NONE, line[-1][1]+chr(c1))
                 else:
                     data = data[1:]
-                    line.append((self.NONE, chr(c1)))
+                    line.append((Token.NONE, chr(c1)))
             data = data[1:]
             parsed.append(self.pass2(line))
         return parsed
     
     def pass2(self, line):
         tokens = []
-        for (c, w) in line:
-            if c==self.NONE:
-                tokens += self.split_none(w)
+        for token in line:
+            if token[0]==Token.NONE:
+                tokens += self.split_none(token[1])
             else:
-                tokens.append((c, w))
+                tokens.append(token)
 
         nows = self.nows(tokens)
         nl = len(nows)
+        label = False
         for ix, token in enumerate(nows):
-            (c, w) = token
-            if c==self.ID:
-                if ix+2<len(nows) and nows[ix+1][0]==ord('$') and nows[ix+2][0]==ord('('):
-                    nows[ix] = (self.STRARR, w)
-                elif ix+1<len(nows) and nows[ix+1][0]==ord('$'):
-                    nows[ix] = (self.STR, w)
-                elif ix+1<len(nows) and nows[ix+1][0]==ord('('):
-                    nows[ix] = (self.ARR, w)
+            if label:
+                if token[0] in [Token.ID, Token.NUM]:
+                    nows[ix] = (Token.LABEL, token[1])
+                elif (token[0]==Token.KW and token[1] not in ['TO', 'SUB']) or token[0] == ord(':'):
+                    label = False
+                else:
+                    pass
+            else:
+                if token[0]==Token.ID:
+                    if ix+2<len(nows) and nows[ix+1][0]==ord('$') and nows[ix+2][0]==ord('('):
+                        nows[ix] = (Token.STRARR, token[1])
+                    elif ix+1<len(nows) and nows[ix+1][0]==ord('$'):
+                        nows[ix] = (Token.STR, token[1])
+                    elif ix+1<len(nows) and nows[ix+1][0]==ord('('):
+                        nows[ix] = (Token.ARR, token[1])
+                    else:
+                        pass
+                elif token[0]==Token.KW and token[1].upper() in ['GO', 'THEN', 'ELSE']:
+                    label = True
+                else:
+                    pass
 
         i=0
         j=0
         while i<len(tokens):
-            if tokens[i][0]==self.WS:
+            if tokens[i][0]==Token.WS:
                 i += 1
             else:
                 tokens[i] = nows[j]
@@ -157,31 +177,31 @@ class Parser:
             match = re.match('[0-9]*\.[0-9]*', word)
             if match and match.end()>0:
                 ml = match.end()
-                tokens.append((self.FLOAT, word[:ml]))
+                tokens.append((Token.FLOAT, word[:ml]))
                 word = word[ml:]
                 continue
             match = re.match('[0-9]*(\.[0-9]*)?[+-]?[Ee][0-9]*', word)
             if match and match.end()>0:
                 ml = match.end()
-                tokens.append((self.FLOAT, word[:ml]))
+                tokens.append((Token.FLOAT, word[:ml]))
                 word = word[ml:]
                 continue
             match = re.match('[0-9]*', word)
             if match and match.end()>0:
                 ml = match.end()
-                tokens.append((self.NUM, word[:ml]))
+                tokens.append((Token.NUM, word[:ml]))
                 word = word[ml:]
                 continue
             match = re.match('&H[0-9A-Fa-f]*', word)
             if match and match.end()>0:
                 ml = match.end()
-                tokens.append((self.HEX, word[:ml]))
+                tokens.append((Token.HEX, word[:ml]))
                 word = word[ml:]
                 continue
             match = re.match(' *', word)
             if match and match.end()>0:
                 ml = match.end()
-                tokens.append((self.WS, word[:ml]))
+                tokens.append((Token.WS, word[:ml]))
                 word = word[ml:]
                 continue
             tokens.append((ord(word[0]), word[0]))
@@ -192,7 +212,7 @@ class Parser:
     def nows(self, tokens):
         rv = []
         for token in tokens:
-            if token[0]!=self.WS:
+            if token[0]!=Token.WS:
                 rv.append(token)
         return rv
     
@@ -201,25 +221,29 @@ class Parser:
         for linein in re.split('[\n\r]+', data):
             if linein=="":
                 continue
-            match = re.match(' *[0-9]+ *', linein)
-            if match:
-                line = [(self.LABEL, str(int(linein[:match.end()])))]
-                lineom = linein[match.end():]
+            match1 = re.match(' *[0-9]+ *', linein)
+            match2 = re.match(' *[A-Za-z][0-9A-Za-z]*: *', linein)
+            if match1:
+                line = [(Token.LABEL, str(int(linein[:match1.end()])))]
+                linein = linein[match1.end():]
+            elif match2:
+                line = [(Token.LABEL, str(int(linein[:match2.end()-1])))]
+                linein = linein[match2.end():]
             else:
                 line = []
             match = re.match(' *', linein)
             linein = linein[match.end():]
             while linein!='':
                 if len(line)>0:
-                    if line[-1][0] in self.rem_codes:
-                        line.append((self.REM, linein))
+                    if line[-1][0]==Token.KW and line[-1][2] in self.rem_codes:
+                        line.append((Token.REM, linein))
                         linein = ''
                         continue
                     if line[-1][0] == self.kw2code['DATA']:
                         match = re.match('[^:]+', linein)
                         if match:
                             ml = match.end()
-                            line.append((self.DATA, linein[:ml]))
+                            line.append((Token.DATA, linein[:ml]))
                             linein = linein[ml:]
                         continue
                             
@@ -228,7 +252,7 @@ class Parser:
                     kl = len(kw)
                     if linein[:kl].upper()==kw:
                         found = True
-                        line.append((self.kw2code[kw], linein[:kl]))
+                        line.append((Token.KW, linein[:kl], self.kw2code[kw]))
                         linein = linein[kl:]
                         break
                 if found:
@@ -237,21 +261,21 @@ class Parser:
                 match = re.match('[A-Za-z][0-9A-Za-z]*', linein)
                 if match:
                     ml = match.end()
-                    line.append((self.ID, linein[:ml]))
+                    line.append((Token.ID, linein[:ml]))
                     linein = linein[ml:]
                     continue
 
                 match = re.match('"[^"]*"', linein)
                 if match:
                     ml = match.end()
-                    line.append((self.QUOTED, linein[:ml]))
+                    line.append((Token.QUOTED, linein[:ml]))
                     linein = linein[ml:]
                     continue
                 
-                if line[-1][0]==self.NONE:
-                    line[-1] = (self.NONE, line[-1][1]+linein[0])
+                if line[-1][0]==Token.NONE:
+                    line[-1] = (Token.NONE, line[-1][1]+linein[0])
                 else:
-                    line.append((self.NONE, linein[0]))
+                    line.append((Token.NONE, linein[0]))
                 linein = linein[1:]
             parsed.append(self.pass2(line))
         return parsed
