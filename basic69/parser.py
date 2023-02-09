@@ -185,7 +185,7 @@ class Parser:
                     ent = ent.upper()
                 elif case == self.LOWER and typ != self.QUOTED:
                     ent = ent.lower()
-                if ws and ent[0].isalnum() and out and out[-1].isalnum():
+                if ws and ent and ent[0].isalnum() and out and out[-1].isalnum():
                     ent = ' ' + ent
                 elif typ == self.LABEL and ix + 1 < len(line) and line[ix + 1][0] != self.WS:
                     ent += ' '
