@@ -1,3 +1,6 @@
+from msbasic.tokens import no_ws, Token
+
+
 class IDError(RuntimeError):
     pass
 
@@ -15,30 +18,29 @@ def getidtype(ix, line, pp):
     return 'numvar'
 
 
-def getids(pp):
+def getids(data: list[list[tuple]]) -> dict[Token, set]:
     # get a list of all variables used in a program
-    lines = pp.no_ws()
-    numvar = {}
-    strvar = {}
-    numarr = {}
-    strarr = {}
+    lines = no_ws(data)
+    numvar = set()
+    strvar = set()
+    numarr = set()
+    strarr = set()
 
     for line in lines:
-        for ix, field in enumerate(line):
-            if field[0] == pp.ID:
-                var = field[1].upper()
-                idtype = getidtype(ix, line, pp)
-                if idtype == 'strarr':
-                    strarr[var] = True
-                elif idtype == 'strvar':
-                    strvar[var] = True
-                elif idtype == 'numarr':
-                    numarr[var] = True
-                else:
-                    numvar[var] = True
+        for ix, token in enumerate(line):
+            if token[0] == Token.STRARR:
+                strarr.add(token[1].upper())
+            elif token[0] == Token.STR:
+                strvar.add(token[1].upper())
+            elif token[0] == Token.ARR:
+                numarr.add(token[1].upper())
+            elif token[0] == Token.ID:
+                numvar.add(token[1].upper())
+            else:
+                pass
 
-    return {'numvar': set(numvar.keys()), 'strvar': set(strvar.keys()), 'numarr': set(numarr.keys()),
-            'strarr': set(strarr.keys())}
+    return {Token.ID: numvar, Token.STR: strvar, Token.ARR: numarr,
+            Token.STRARR: strarr}
 
 
 def nextid(prev):
@@ -74,19 +76,19 @@ def getidmap(oldids, pp):
     return newids
 
 
-def reid(pp):
+def reid(pp, data=None) -> list[list[tuple]]:
     # remap variable names in a program to ordialized variable names
-    oldids = getids(pp)
+    if not data:
+        data = pp.full_parse
+    oldids = getids(data)
     mymap = {}
     for key in oldids.keys():
         ids = oldids[key]
         mymap[key] = getidmap(ids, pp)
 
-    data = pp.no_ws()
-
     for lix, line in enumerate(data):
         for tix, token in enumerate(line):
-            if token[0] == pp.ID:
-                data[lix][tix] = (pp.ID, mymap[getidtype(tix, line, pp)][token[1].upper()])
+            if token[0] in [Token.ID, Token.STR, Token.ARR, Token.STRARR]:
+                data[lix][tix] = (token[0], mymap[token[0]][token[1].upper()])
 
-    pp.full_parse = data
+    return data

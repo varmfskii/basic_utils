@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 import sys
 
-from basic69 import Options, detokenize
+from basic69 import Options, Parser
 
 
 def main(args):
-    options = Options(args, ext='txt')
+    opts = Options(args, ext='txt')
 
-    for o, a in options.unused:
+    for o, a in opts.unused:
         assert False, f'unhandled option [{o}]'
 
-    pp, listing = detokenize(options, open(options.iname, 'rb').read())
-    open(options.oname, 'w').write(listing)
+    pp = Parser(opts, open(opts.iname, 'rb').read())
+    open(opts.oname, 'w').write(pp.deparse())
 
 
 if __name__ == "__main__":

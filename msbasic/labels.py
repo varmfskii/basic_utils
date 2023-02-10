@@ -1,41 +1,38 @@
+from msbasic.tokens import Token
+
+
 class LineNumberError(RuntimeError):
     pass
 
 
-def getlabs(pp):
+def getlabs(data):
     # get a list of valid labels (line numbers)
     labels = []
 
-    for line in pp.full_parse:
-        if line[0][0] == pp.LABEL:
-            labels.append(line[0][1])
+    for line in data:
+        if line[0][0] == Token.LABEL:
+            labels.append(line[0][1].upper())
 
     return labels
 
 
-def gettgtlabs(pp):
+def gettgtlabs(data):
     # get a list of labels (line numbers) used as targets
-    parsed = pp.full_parse
     labels = []
 
-    for line in parsed:
-        code = pp.NONE
-        for token in line:
-            if token[0] == pp.SEP or (
-                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [pp.NUM, pp.WS]):
-                code = pp.NONE
-            elif code != pp.NONE and token[0] == pp.NUM and token[1] not in labels:
-                labels.append(token[1])
-            elif token[0] in [pp.kw2code["THEN"], pp.kw2code["ELSE"], pp.kw2code["GO"]]:
-                code = token[0]
+    for ix, line in enumerate(data):
+        for token in line[1:]:
+            if token[0] == Token.LABEL:
+                labels.append(token[1].upper())
+
     labels.sort()
     return labels
 
 
-def validatelabs(pp):
+def validatelabs(data):
     # check that all labels used as targets are defined
-    labs = getlabs(pp)
-    tgtlabs = gettgtlabs(pp)
+    labs = getlabs(data)
+    tgtlabs = gettgtlabs(data)
     badlabs = []
 
     for lab in tgtlabs:
@@ -51,53 +48,68 @@ def validatelabs(pp):
     return False
 
 
-def renumber(pp, start=10, interval=10):
+def renumber(data, start=10, interval=10):
     # renumber a parsed BASIC program
-    parsed = pp.full_parse
     labels = {}
     number = start
 
-    if not validatelabs(pp):
+    if not validatelabs(data):
         raise LineNumberError('unmatched label') from None
 
-    for ix, line in enumerate(parsed):
-        if line[0][0] == pp.LABEL:
-            labels[line[0][1]] = f'{number}'
-            parsed[ix][0] = (pp.LABEL, f'{number}')
-        elif line[0][0] == pp.WS:
-            parsed[ix] = [(pp.LABEL, f'{number}')] + parsed[ix][1:]
+    for ix, line in enumerate(data):
+        if line[0][0] == Token.LABEL:
+            labels[line[0][1].upper()] = f'{number}'
+            data[ix][0] = (Token.LABEL, f'{number}')
+        elif line[0][0] == Token.WS:
+            data[ix][0] = [(Token.LABEL, f'{number}')]
         else:
-            parsed[ix] = [(pp.LABEL, f'{number}')] + parsed[ix]
+            data[ix] = [(Token.LABEL, f'{number}')] + data[ix]
         number += interval
         if number > 32767:
             raise LineNumberError(number) from None
 
-    for lix, line in enumerate(parsed):
-        code = pp.NONE
+    for lix, line in enumerate(data):
         for tix, token in enumerate(line):
-            if token[0] == pp.SEP or (
-                    code in [pp.kw2code["THEN"], pp.kw2code["ELSE"]] and token[0] not in [pp.NUM, pp.WS]):
-                code = pp.NONE
-            elif code != pp.NONE and token[0] == pp.NUM:
-                parsed[lix][tix] = (pp.NUM, labels[token[1]])
-            elif token[0] in [pp.kw2code["THEN"], pp.kw2code["ELSE"], pp.kw2code["GO"]]:
-                code = token[0]
+            if tix == 0:
+                continue
+            if token[0] == Token.LABEL:
+                data[lix][tix] = (Token.LABEL, labels[token[1].upper()])
 
-    pp.full_parse = parsed
+    return data
 
 
-def cleanlabs(pp):
+def clean_labs(data):
     # remove all line numbers that are not used as targets
-    labels = gettgtlabs(pp)
-    parsed = pp.full_parse
+    labels = gettgtlabs(data)
     lines = []
 
-    for line in parsed:
+    for line in data:
         if not line:
             continue
-        if line[0][0] != pp.LABEL or (line[0][0] == pp.LABEL and line[0][1] in labels):
+        if line[0][0] != Token.LABEL or (line[0][0] == Token.LABEL and line[0][1].upper() in labels):
             lines.append(line)
         elif len(line) > 1:
             lines.append(line[1:])
 
-    pp.full_parse = lines
+    return lines
+
+
+def clean_goto(data: list[list[tuple]]) -> list[list[tuple]]:
+    # convert "then goto" to "then" and "else goto" to "else"
+    rv = []
+    for line in data:
+        new_line = []
+        skip = False
+        ll = len(line)
+        for ix, token in enumerate(line):
+            if skip:
+                skip = False
+            elif (1 < ix < ll - 1
+                  and token[0] == Token.KW and token[1].upper() == 'GO'
+                  and line[ix + 1][0] == Token.KW and line[ix + 1][1].upper() == 'TO'
+                  and line[ix - 1][0] == Token.KW and line[ix - 1][1].upper() in ['THEN', 'ELSE']):
+                skip = True
+            else:
+                new_line.append(token)
+        rv.append(new_line)
+    return rv

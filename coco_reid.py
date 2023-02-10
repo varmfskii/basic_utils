@@ -2,19 +2,24 @@
 import sys
 
 from basic69 import Options, Parser, tokenize
-from msbasic import reid
+from msbasic.variables import reid
 
 
 def main():
-    opts = Options(sys.argv[1:], ext='reid')
+    astokens = True
+    usage = ["\t-t\t--text\t\t\toutput as text file\n"]
+    lopts = ["text"]
+    opts = Options(sys.argv[1:], sopts='t', lopts=lopts, usage=usage, ext='reid')
     for o, a in opts.unused:
+        if o in ['-t', '--text']:
+            astokens = False
         assert False, f'unhandled option [{o}]'
     pp = Parser(opts, open(opts.iname, 'rb').read())
-    reid(pp)
-    if opts.astokens:
-        open(opts.oname, 'wb').write(tokenize(pp))
+    data = reid(pp)
+    if astokens:
+        open(opts.oname, 'wb').write(tokenize(data, opts))
     else:
-        open(opts.oname, 'w').write(pp.deparse())
+        open(opts.oname, 'w').write(pp.deparse(data))
 
 
 if __name__ == "__main__":

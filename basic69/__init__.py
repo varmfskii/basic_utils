@@ -2,7 +2,7 @@ from basic69.coco import cb, ecb, decb, secb, sdecb
 from basic69.dragon import basic as dragon
 from basic69.dragon import ddos
 from msbasic.options import Options as BaseOptions
-from msbasic.tokens import tokenize_line, detokenize_body
+from msbasic.tokens import tokenize_line
 from .parser import Parser
 
 
@@ -61,43 +61,22 @@ class Options(BaseOptions):
             self.address = 0x25fe
 
 
-def tokenize(pp, ws=False):
+def tokenize(data, opts):
     # convert a parsed file into tokenized BASIC file
-    if ws:
-        parsed = pp.full_parse
-    else:
-        parsed = pp.no_ws()
     tokenized = []
-    address = pp.address
-    for line in parsed:
-        line_tokens = tokenize_line(line, pp)
+    address = opts.address
+    for line in data:
+        line_tokens = tokenize_line(line)
         address += 2 + len(line_tokens)
         tokenized += [address // 0x100, address & 0xff] + line_tokens
     tokenized += [0, 0]
-    if pp.isdragon:
+    if opts.isdragon:
         val = len(tokenized)
         tokenized = [0x55, 0x01, 0x24, 0x01, val // 256, val & 0xff, 0x8b, 0x8d, 0xaa] + tokenized
-    elif pp.disk:
+    elif opts.disk:
         val = len(tokenized)
         tokenized = [0xff, val // 0x100, val & 0xff] + tokenized
     return bytearray(tokenized)
-
-
-def detokenize(opts, data):
-    data = list(data)
-    pp = Parser(opts)
-
-    if data[0] == 0x55:
-        ix = 9
-        opts.keywords, opts.remarks = ddos.keywords, ddos.remarks
-    elif data[0] == 0xff:
-        ix = 3
-        opts.keywords, opts.remarks = sdecb.keywords, sdecb.remarks
-    else:
-        ix = 0
-        opts.keywords, opts.remarks = sdecb.keywords, sdecb.remarks
-
-    return detokenize_body(data[ix:], pp)
 
 
 if __name__ == "__main__":

@@ -5,20 +5,11 @@ from basic69 import Options, Parser, tokenize
 
 
 def main():
-    usage = ['\t-w\t--whitespace\t\tdo not preserve whitespace\n']
-    lopts = ["whitespace"]
-    opts = Options(sys.argv[1:], sopts='w', lopts=lopts, usage=usage, ext='tok', astokens=True)
-    ws = True
+    opts = Options(sys.argv[1:], ext='tok')
     for o, a in opts.unused:
-        if o in ["-w", "--whitespace"]:
-            ws = False
-        else:
-            assert False, f'unhandled option [{o}]'
+        assert False, f'unhandled option [{o}]'
     pp = Parser(opts, open(opts.iname, 'rb').read())
-    if opts.astokens:
-        open(opts.oname, 'wb').write(tokenize(pp, ws=ws))
-    else:
-        open(opts.oname, 'w').write(pp.deparse())
+    open(opts.oname, 'wb').write(tokenize(pp.full_parse, opts))
 
 
 if __name__ == "__main__":

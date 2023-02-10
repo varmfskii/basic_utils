@@ -6,10 +6,9 @@ remarks = []
 
 
 class Options:
-    astokens = True
     disk = True
-    sopts = "hi:o:u"
-    lopts = ["help", "input=", "output=", "text"]
+    sopts = "hi:o:"
+    lopts = ["help", "input=", "output="]
     iname = None
     oname = None
     unused = []
@@ -17,7 +16,6 @@ class Options:
         '\t-h\t--help\t\t\tthis help\n',
         '\t-i<n>\t--input=<file>\t\tinput file\n',
         '\t-o<n>\t--output=<file>\t\toutput file\n',
-        '\t-u\t--text\t\t\ttext file\n'
     ]
     keywords = []
     remarks = []
@@ -27,7 +25,6 @@ class Options:
         if lopts is None:
             lopts = []
 
-        self.astokens = astokens
         self.sopts += sopts
         self.lopts += lopts
         self.usage += usage
@@ -47,8 +44,6 @@ class Options:
                 self.iname = a
             elif o in ["-o", "--output"]:
                 self.oname = a
-            elif o in ["-u", "--text"]:
-                self.astokens = False
             else:
                 self.subopts((o, a))
 
