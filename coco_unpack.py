@@ -2,7 +2,7 @@
 import sys
 
 from basic69 import Options, Parser
-from msbasic.pack import splitlines
+from msbasic.pack import split_lines
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
             assert False, f'unhandled option: [{o}]'
 
     pp = Parser(opts, open(opts.iname, 'rb').read())
-    data = splitlines(pp.full_parse)
+    data = split_lines(pp.full_parse)
     open(opts.oname, 'w').write(pp.deparse(data, ws=ws))
 
 

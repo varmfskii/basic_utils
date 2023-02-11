@@ -25,7 +25,6 @@ class Parser:
         if data:
             self.parse(data)
 
-
     def parse(self, data: list[int]) -> list[list[tuple]]:
         if data[0] < 128 and data[1] < 128:
             self.full_parse = self.parse_txt("".join(map(chr, data)))
@@ -198,6 +197,7 @@ class Parser:
 
     def parse_txt(self, data: str) -> list[list[tuple]]:
         parsed = []
+        re.sub('\\\\(\n|\r|\r\n|\n\r)', data, '')
         for linein in re.split('[\n\r]+', data):
             if linein == "":
                 continue
@@ -268,21 +268,24 @@ class Parser:
         if not data:
             data = self.full_parse
         for line in data:
-            if line[0][0] == Token.LABEL:
-                out += line[0][1] + ' '
-                line = line[1:]
-            else:
-                out += ' '
-            for ix, token in enumerate(line):
-                if (token[0] == Token.KW and token[1][0].isalpha() and ix > 0
-                        and line[ix - 1][0] in [Token.ID, Token.STR, Token.ARR, Token.STRARR]):
-                    out += ' '
-                if ws and out[-1].isalnum() and token[1][0].isalnum():
-                    out += ' '
-                if token[0] in [Token.QUOTED, Token.DATA, Token.REM]:
-                    out += token[1]
-                else:
-                    out += token[1].upper()
-            out += '\n'
-
+            out += self.deparse_line(line, ws)
         return out
+
+    def deparse_line(self, line, ws=False):
+        if line[0][0] == Token.LABEL:
+            out = line[0][1] + ' '
+            line = line[1:]
+        else:
+            out = ' '
+        for ix, token in enumerate(line):
+            if (token[0] == Token.KW and token[1][0].isalpha() and ix > 0
+                and line[ix - 1][0] in [Token.ID, Token.STR, Token.ARR, Token.STRARR]):
+                out += ' '
+            if ws and out[-1].isalnum() and token[1][0].isalnum():
+                out += ' '
+            if token[0] in [Token.QUOTED, Token.DATA, Token.REM]:
+                out += token[1]
+            else:
+                out += token[1].upper()
+        out += '\n'
+        return out;

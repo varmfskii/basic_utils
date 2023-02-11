@@ -21,22 +21,33 @@ def no_remarks(data):
     return lines
 
 
-def mergelines(data, maxlen=0):
+def merge_lines(pp, data=None, max_len=0, text_len=False):
     # merge lines in program together where possible to a limit of
     # maxlen (if maxlen is not 0)
     lines = []
     nextline = []
-    old_len = 0
+    if text_len:
+        old_len = 1
+    else:
+        old_len = 4
+    line_no = 0
 
+    if not data:
+        data = pp.full_parse
     for line in data:
         if not line:
             continue
-        next_len = linelen(line)
-        if line[0][0] == Token.LABEL or 0 < maxlen < old_len + 1 + next_len:
+        next_len = get_len(pp, line, text_len=text_len)
+        if line[0][0] == Token.LABEL or 0 < max_len < old_len + 1 + next_len:
             if nextline:
                 lines.append(nextline)
+                line_no += 1
             nextline = line
-            old_len = 5 + next_len
+            old_len = next_len
+            if text_len:
+                old_len += len(str(line_no)) + 1
+            else:
+                old_len += 5
         else:
             if nextline:
                 if len(nextline) > 1 or nextline[0][0] != Token.LABEL:
@@ -50,7 +61,12 @@ def mergelines(data, maxlen=0):
         for token in line:
             if token[0] == Token.KW and token[1].upper() == 'IF':
                 lines.append(nextline)
+                line_no += 1
                 nextline = []
+                if text_len:
+                    old_len = len(str(line_no))
+                else:
+                    old_len = 4
                 break
 
     if nextline:
@@ -58,7 +74,7 @@ def mergelines(data, maxlen=0):
     return lines
 
 
-def splitlines(data):
+def split_lines(data):
     lines = []
     for line in data:
         start = 0
@@ -72,11 +88,14 @@ def splitlines(data):
     return lines
 
 
-def linelen(line):
+def get_len(pp, in_line, text_len=False):
+    line = in_line
     if len(line) == 0:
         return 0
     if line[0][0] == Token.LABEL:
         line = line[1:]
+    if text_len:
+        return len(pp.deparse_line(line))
     len_acc = 0
     for token in line:
         if token[0] != Token.KW:
@@ -91,12 +110,12 @@ def linelen(line):
     return len_acc
 
 
-def pack(pp, data=None, maxline=0):
+def pack(pp, data=None, max_len=0, text_len=False):
     # pack a basic program
     if not data:
         data = pp.full_parse
     data = no_remarks(clean_goto(clean_labs(no_ws(data))))
     data = reid(pp, data=data)
-    data = mergelines(data, maxline)
+    data = merge_lines(pp, data=data, max_len=max_len, text_len=text_len)
     data = renumber(data, start=0, interval=1)
     return data
