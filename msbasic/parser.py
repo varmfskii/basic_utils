@@ -12,6 +12,7 @@ class Parser:
 
     code2kw = {}
     kw2code = {}
+    kw_keys = []
     full_parse = None
 
     def __init__(self, opts, data=None, be=True):
@@ -19,8 +20,11 @@ class Parser:
         for (w, c) in opts.keywords:
             self.code2kw[c] = w
             self.kw2code[w] = c
+        self.kw_keys = list(self.kw2code.keys())
+        self.kw_keys.sort(key=(lambda x: -len(x)))
         if data:
             self.parse(data)
+
 
     def parse(self, data: list[int]) -> list[list[tuple]]:
         if data[0] < 128 and data[1] < 128:
@@ -253,7 +257,7 @@ class Parser:
 
     def match_kw(self, line) -> tuple or None:
         ll = len(line)
-        for kw in self.kw2code.keys():
+        for kw in self.kw_keys:
             kl = len(kw)
             if ll >= kl and kw == line[:kl].upper():
                 return Token.KW, line[:kl], self.kw2code[kw]

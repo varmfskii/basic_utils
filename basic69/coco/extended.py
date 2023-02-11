@@ -20,6 +20,7 @@ ext_keywords = [
     ("PCOPY", 0xC7),
     ("PMODE", 0xC8),
     ("PLAY", 0xC9),
+    ("DLOADM", 0xca4d),
     ("DLOAD", 0xCA),
     ("RENUM", 0xCB),
     ("FN", 0xCC),
