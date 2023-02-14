@@ -3,17 +3,17 @@ from msbasic.tokens import no_ws, Token
 from msbasic.variables import reid
 
 
-def no_remarks(data):
+def no_remarks(remarks, data):
     # remove all "unnecessary" remarks
     lines = []
 
     for line in data:
         for tix, token in enumerate(line):
-            if token[0] == Token.REM:
-                if tix > 1 and line[tix - 2][0] == ord(':'):
-                    line = line[:tix - 2]
-                else:
+            if token[1].upper() in remarks:
+                if tix > 0 and line[tix - 1][0] == ord(':'):
                     line = line[:tix - 1]
+                else:
+                    line = line[:tix]
                 break
         if len(line) != 0:
             lines.append(line)
@@ -89,12 +89,14 @@ def split_lines(data):
 
 
 def get_len(pp, in_line, text_len=False):
+    if not in_line:
+        return 0
     line = in_line
     if len(line) == 0:
         return 0
     if line[0][0] == Token.LABEL:
         line = line[1:]
-    if text_len:
+    if line and text_len:
         return len(pp.deparse_line(line))
     len_acc = 0
     for token in line:
@@ -111,10 +113,12 @@ def get_len(pp, in_line, text_len=False):
 
 
 def pack(pp, data=None, max_len=0, text_len=False):
+    opts = pp.opts
     # pack a basic program
     if not data:
         data = pp.full_parse
-    data = no_remarks(clean_goto(clean_labs(no_ws(data))))
+    data = clean_goto(clean_labs(no_ws(data)))
+    data = no_remarks(opts.remarks, data)
     data = reid(pp, data=data)
     data = merge_lines(pp, data=data, max_len=max_len, text_len=text_len)
     data = renumber(data, start=0, interval=1)

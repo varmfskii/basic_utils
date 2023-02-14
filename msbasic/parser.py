@@ -14,8 +14,10 @@ class Parser:
     kw2code = {}
     kw_keys = []
     full_parse = None
+    opts = None
 
     def __init__(self, opts, data=None, be=True):
+        self.opts = opts
         self.be = be
         for (w, c) in opts.keywords:
             self.code2kw[c] = w
@@ -271,7 +273,8 @@ class Parser:
             out += self.deparse_line(line, ws)
         return out
 
-    def deparse_line(self, line, ws=False):
+    @staticmethod
+    def deparse_line(line, ws=False):
         if line[0][0] == Token.LABEL:
             out = line[0][1] + ' '
             line = line[1:]
@@ -279,7 +282,7 @@ class Parser:
             out = ' '
         for ix, token in enumerate(line):
             if (token[0] == Token.KW and token[1][0].isalpha() and ix > 0
-                and line[ix - 1][0] in [Token.ID, Token.STR, Token.ARR, Token.STRARR]):
+                    and line[ix - 1][0] in [Token.ID, Token.STR, Token.ARR, Token.STRARR]):
                 out += ' '
             if ws and out[-1].isalnum() and token[1][0].isalnum():
                 out += ' '
@@ -288,4 +291,4 @@ class Parser:
             else:
                 out += token[1].upper()
         out += '\n'
-        return out;
+        return out
