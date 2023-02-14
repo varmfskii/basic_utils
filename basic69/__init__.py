@@ -46,10 +46,8 @@ class Options(BaseOptions):
                 sys.exit(2)
         if o in ["-c", "--cassette"]:
             self.disk = False
-            self.astokens = True
         elif o in ["-d", "--disk"]:
             self.disk = True
-            self.astokens = True
         else:
             self.unused.append(other)
 

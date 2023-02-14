@@ -13,7 +13,8 @@ def main():
     for o, a in opts.unused:
         if o in ['-t', '--text']:
             astokens = False
-        assert False, f'unhandled option [{o}]'
+        else:
+            assert False, f'unhandled option [{o}]'
     pp = Parser(opts, open(opts.iname, 'rb').read())
     data = reid(pp)
     if astokens:

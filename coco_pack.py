@@ -15,7 +15,7 @@ def main():
     lopts = ['token-len', 'maxline=', 'text', 'text-len']
     astokens = True
     text_len = False
-    opts = Options(sys.argv[1:], sopts='km:tx', lopts=lopts, usage=usage, ext='pack', astokens=True)
+    opts = Options(sys.argv[1:], sopts='km:tx', lopts=lopts, usage=usage, ext='pack')
     max_len = 0
     for o, a in opts.unused:
         if o in ['-k', '--token-len']:
