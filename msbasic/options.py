@@ -7,12 +7,14 @@ remarks = []
 
 class Options:
     disk = True
-    sopts = "hi:o:"
-    lopts = ["help", "input=", "output="]
+    sopts = "a:hi:o:"
+    lopts = ['address', "help", "input=", "output="]
     iname = None
     oname = None
     unused = []
+    address = 0
     usage = [
+        '\t-a\t--address=<addy>\t\t\tstarting address\n',
         '\t-h\t--help\t\t\tthis help\n',
         '\t-i<n>\t--input=<file>\t\tinput file\n',
         '\t-o<n>\t--output=<file>\t\toutput file\n',
@@ -20,8 +22,10 @@ class Options:
     keywords = []
     remarks = []
 
-    def __init__(self, args, sopts='', lopts=None, usage=[], ext='bas', astokens=True):
+    def __init__(self, args, sopts='', lopts=None, usage=None, ext='bas'):
         # parse options for msbasic utils including globally available options
+        if usage is None:
+            usage = []
         if lopts is None:
             lopts = []
 
@@ -37,7 +41,9 @@ class Options:
             sys.exit(2)
 
         for o, a in opts:
-            if o in ["-h", "--help:"]:
+            if o in ['-a', '--address']:
+                self.address = int(a)
+            elif o in ["-h", "--help:"]:
                 self.show_usage(sys.stdout)
                 sys.exit(0)
             elif o in ["-i", "--input"]:
@@ -65,9 +71,14 @@ class Options:
             self.show_usage(sys.stderr)
             sys.exit(2)
 
+        self.post()
+
     def subopts(self, other):
         self.unused.append(other)
 
+    def post(self):
+        pass
+    
     def show_usage(self, fh):
         fh.write(f'Usage: {sys.argv[0]} [<opts>] [<iname>] [<oname>]\n')
         self.usage.sort()

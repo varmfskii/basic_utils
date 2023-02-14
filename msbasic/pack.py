@@ -112,14 +112,37 @@ def get_len(pp, in_line, text_len=False):
     return len_acc
 
 
-def pack(pp, data=None, max_len=0, text_len=False):
+def pack(pp, data=None, max_len=0, text_len=False, i2x=False, z2p=False):
     opts = pp.opts
     # pack a basic program
     if not data:
         data = pp.full_parse
+    if i2x:
+        data = map2d(int2hex, data)
+    if z2p:
+        data = map2d(zero2pt, data)
     data = clean_goto(clean_labs(no_ws(data)))
     data = no_remarks(opts.remarks, data)
     data = reid(pp, data=data)
     data = merge_lines(pp, data=data, max_len=max_len, text_len=text_len)
     data = renumber(data, start=0, interval=1)
     return data
+
+
+def int2hex(token: tuple) -> tuple:
+    if token[0] == Token.NUM and 0 <= int(token[1]) < 0x10000:
+        return Token.HEX, str(f'&H{int(token[1]):X}')
+    return token
+
+
+def zero2pt(token: tuple) -> tuple:
+    if token[0] == Token.NUM and int(token[1]) == 0:
+        return Token.FLOAT, '.'
+    return token
+
+
+def map2d(fn, data: [[tuple]]) -> [[tuple]]:
+    rv = []
+    for line in data:
+        rv.append(list(map(fn, line)))
+    return rv

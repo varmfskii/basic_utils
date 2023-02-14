@@ -36,13 +36,13 @@ def tokenize_line(line, be=True):
                 tokens.append(ord(char))
         elif token[0] != Token.KW:
             # code text, interpreter only recognizes uppercase
-            for char in token[1].upper():
+            for char in token[1]:
                 tokens.append(ord(char))
         elif token[2] < 0x100:  # tokenized keyword
             tokens.append(token[2])
         elif token[2] < 0x10000:  # tokenized extended keyword
             tokens += [token[2] // 256, token[2] & 0xff]
-        else:  # three byte keyword (not coco or dragon)
+        else:  # three byte keyword
             tokens += [token[2] // 0x10000, (token[2] // 0x100) & 0xff, token[2] & 0xff]
     tokens.append(0)
     return tokens
