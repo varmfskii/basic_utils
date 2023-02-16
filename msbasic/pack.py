@@ -1,3 +1,5 @@
+import re
+
 from msbasic.labels import clean_labs, renumber, clean_goto
 from msbasic.tokens import no_ws, Token
 from msbasic.variables import reid
@@ -50,11 +52,31 @@ def merge_lines(pp, data=None, max_len=0, text_len=False):
                 old_len += 5
         else:
             if nextline:
-                if len(nextline) > 1 or nextline[0][0] != Token.LABEL:
+                data_data = ''
+                if nextline[-1][0] == Token.DATA:
+                    data_data = nextline[-1][1]
+                    nextline = nextline[:-2]
+                    if len(nextline) > 0 and nextline[-1] == (ord(':'), ':'):
+                        nextline = nextline[:-1]
+                if line[-1][0] == Token.DATA:
+                    if data_data:
+                        data_data += ','
+                    new_data = line[-1][1]
+                    new_data = re.sub('^ *', '', new_data)
+                    data_data += new_data
+                    line = line[:-2]
+                    if len(line) > 0 and line[-1] == (ord(':'), ':'):
+                        line = line[:-1]
+                if len(nextline) >0 and len(line) > 0:
                     nextline += [(ord(':'), ':')]
                     old_len += 1
                 nextline += line
                 old_len += next_len
+                if data_data:
+                    if len(nextline) > 1 or nextline[0][0] != Token.LABEL:
+                        nextline += [(ord(':'), ':')]
+                    nextline += [(Token.KW, pp.data_kw[0], pp.kw2code[pp.data_kw[0]]),
+                                 (Token.DATA, data_data)]
             else:
                 nextline = line
                 old_len = 5 + next_len

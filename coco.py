@@ -68,7 +68,7 @@ def packfn(args):
             text_len = True
         else:
             assert False, f'unhandled option: [{o}]'
-    pp = Parser(opts, open(opts.iname, 'rb').read())
+    pp = Parser(opts, open(opts.iname, 'rb').read(), fix_data=True)
     data = pack(pp, text_len=text_len, max_len=max_len, i2x=i2x, z2p=z2p)
     if astokens:
         open(opts.oname, 'wb').write(tokenize(data, opts))
