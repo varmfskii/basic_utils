@@ -219,7 +219,10 @@ class Parser:
         data = data.split('\\')
         s = data[0]
         for p in data[1:]:
-            s += p[1:]
+            m = re.match('\\W*', p)
+            if m:
+                p = p[m.end():]
+            s += p
         data = s
         for linein in re.split('[\n\r]+', data):
             if linein == "":
