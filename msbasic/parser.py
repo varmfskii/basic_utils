@@ -216,14 +216,6 @@ class Parser:
 
     def parse_txt(self, data: str, fix_data=False) -> list[list[tuple]]:
         parsed = []
-        data = data.split('\\')
-        s = data[0]
-        for p in data[1:]:
-            m = re.match('\\W*', p)
-            if m:
-                p = p[m.end():]
-            s += p
-        data = s
         for linein in re.split('[\n\r]+', data):
             if linein == "":
                 continue
