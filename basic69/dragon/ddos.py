@@ -1,6 +1,6 @@
-from . import basic
+from . import dragon
 
-keywords = basic.keywords + [
+keywords = dragon.keywords + [
     ("AUTO", 0xCE),
     ("BACKUP", 0xCF),
     ("BEEP", 0xD0),
@@ -36,4 +36,4 @@ keywords = basic.keywords + [
     ("FRE$", 0xFFA8)
 ]
 
-remarks = basic.remarks
+remarks = dragon.remarks

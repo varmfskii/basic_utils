@@ -4,13 +4,14 @@ import sys
 
 from basic69 import Options, Parser, tokenize
 from msbasic.labels import renumber
-from msbasic.pack import pack, split_lines
+from msbasic.optimize import Optimizer, OFlags, split_lines
 from msbasic.variables import reid
 
 
 def main(program, args):
     functions = {
         'd': detokenizefn, 'detokenize': detokenizefn,
+        'f': fixfn, 'fix_data': fixfn,
         'h': helpfn, 'help': helpfn,
         'p': packfn, 'pack': packfn,
         'ri': reidfn, 'reid': reidfn,
@@ -34,6 +35,16 @@ def detokenizefn(args):
     open(opts.oname, 'w').write(pp.deparse())
 
 
+def fixfn(args):
+    opts = Options(args, ext='txt')
+
+    for o, a in opts.unused:
+        assert False, f'unhandled option [{o}]'
+
+    pp = Parser(opts, open(opts.iname, 'rb').read(), fix_data=True)
+    open(opts.oname, 'w').write(pp.deparse())
+
+
 def packfn(args):
     usage = [
         "\t-P\t--point\t\tconvert 0 to .\n",
@@ -43,20 +54,20 @@ def packfn(args):
         "\t-t\t--text\t\t\toutput as text file\n",
         "\t-x\t--text-len\t\tline length is for untokenized form\n"
     ]
-    lopts = ['token-len', 'maxline=', 'text', 'text-len', 'point', 'hex']
+    lopts = ['token-len', 'maxline=', 'text', 'text-len', 'point', 'quotes', 'hex']
     astokens = True
-    text_len = False
-    z2p = False
-    i2x = False
-    opts = Options(args, sopts='PXkm:tx', lopts=lopts, usage=usage, ext='pack')
+    oflags = OFlags(0)
+    opts = Options(args, sopts='PQXkm:tx', lopts=lopts, usage=usage, ext='pack')
     max_len = 0
     for o, a in opts.unused:
         if o in ['-P', '--point']:
-            z2p = True
+            oflags |= OFlags.Z2P
+        elif o in ['-Q', '--quotes']:
+            oflags |= OFlags.QUOTE
         elif o in ['-X', '--hex']:
-            i2x = True
+            oflags |= OFlags.I2X
         elif o in ['-k', '--token-len']:
-            text_len = False
+            oflags |= OFlags.TEXTLEN
         elif o in ['-m', '--maxline']:
             max_len = int(a)
             if max_len < 0:
@@ -65,15 +76,16 @@ def packfn(args):
         elif o in ['-t', '--text']:
             astokens = False
         elif o in ['-x', '--text-len']:
-            text_len = True
+            pass
         else:
             assert False, f'unhandled option: [{o}]'
     pp = Parser(opts, open(opts.iname, 'rb').read(), fix_data=True)
-    data = pack(pp, text_len=text_len, max_len=max_len, i2x=i2x, z2p=z2p)
+    optimizer = Optimizer(pp)
+    optimizer.opt(max_len=max_len, flags=oflags)
     if astokens:
-        open(opts.oname, 'wb').write(tokenize(data, opts))
+        open(opts.oname, 'wb').write(tokenize(optimizer.data, opts))
     else:
-        open(opts.oname, 'w').write(pp.deparse(data))
+        open(opts.oname, 'w').write(pp.deparse(optimizer.data))
 
 
 def reidfn(args):
@@ -148,7 +160,7 @@ def unpackfn(args):
             assert False, f'unhandled option: [{o}]'
 
     pp = Parser(opts, open(opts.iname, 'rb').read())
-    data = split_lines(pp.full_parse)
+    data = split_lines(pp)
     open(opts.oname, 'w').write(pp.deparse(data, ws=ws))
 
 
