@@ -47,7 +47,7 @@ def fixfn(args):
 
 def packfn(args):
     usage = [
-        "\t-P\t--point\t\tconvert 0 to .\n",
+        "\t-P\t--point\t\t\tconvert 0 to .\n",
         "\t-X\t--hex\t\t\tconvert integers to &Hhex form\n",
         "\t-k\t--token-len\t\tline length is for tokenized form\n",
         "\t-m\t--maxline=<num>\t\tmaximum line length\n",

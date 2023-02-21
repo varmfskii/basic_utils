@@ -1,4 +1,4 @@
-from basic69.coco import cb, ecb, decb, secb, sdecb
+from basic69.coco import color, cb, ecb, decb, secb, sdecb
 from basic69.dragon import dragon, ddos
 from msbasic.options import Options as BaseOptions
 from msbasic.tokens import tokenize_line
@@ -7,13 +7,13 @@ from .parser import Parser
 
 class Options(BaseOptions):
     DIALECTS = {
-        "cb": (cb.keywords, cb.remarks, False),
-        "ecb": (ecb.keywords, ecb.remarks, False),
-        "decb": (decb.keywords, decb.remarks, False),
-        "secb": (secb.keywords, secb.remarks, False),
-        "sdecb": (sdecb.keywords, sdecb.remarks, False),
+        "cb": (cb.keywords, color.remarks, False),
+        "ecb": (ecb.keywords, color.remarks, False),
+        "decb": (decb.keywords, color.remarks, False),
+        "secb": (secb.keywords, color.remarks, False),
+        "sdecb": (sdecb.keywords, color.remarks, False),
         "dragon": (dragon.keywords, dragon.remarks, True),
-        "ddos": (ddos.keywords, ddos.remarks, True),
+        "ddos": (ddos.keywords, dragon.remarks, True),
     }
     disk = True
     sopts = "b:cd" + BaseOptions.sopts

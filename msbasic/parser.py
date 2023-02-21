@@ -133,6 +133,7 @@ class Parser:
             elif label and ((token[0] == Token.KW and token[1].upper() not in self.ign_kw) or token[0] == ord(':')):
                 label = 0
             if token[0] == Token.ID:
+                label = 0
                 if ix + 2 < len(nows) and nows[ix + 1][0] == ord('$') and nows[ix + 2][0] == ord('('):
                     nows[ix] = (Token.STRARR, token[1])
                 elif ix + 1 < len(nows) and nows[ix + 1][0] == ord('$'):
@@ -226,6 +227,17 @@ class Parser:
     def no_ws(tokens: list[tuple]) -> list[tuple]:
         rv = []
         for token in tokens:
+            if token[0] == Token.QUOTED:
+                n = ''
+                inquote = False
+                for c in token[1]:
+                    if inquote:
+                        n += c
+                    elif c != ' ':
+                        n += c
+                    if c == '"':
+                        inquote = not inquote
+                token = (token[0], n)
             if token[0] != Token.WS:
                 rv.append(token)
         return rv
