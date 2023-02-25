@@ -1,48 +1,27 @@
-from basic69.coco import color, cb, ecb, decb, secb, sdecb
-from basic69.dragon import dragon, ddos
+import sys
+
 from msbasic.options import Options as BaseOptions
-from msbasic.tokens import tokenize_line
+from msbasic.tokens import tokenize as mstokenize
+from .dialects import DIALECTS, SDECB
 from .parser import Parser
 
 
 class Options(BaseOptions):
-    DIALECTS = {
-        "cb": (cb.keywords, color.remarks, False),
-        "ecb": (ecb.keywords, color.remarks, False),
-        "decb": (decb.keywords, color.remarks, False),
-        "secb": (secb.keywords, color.remarks, False),
-        "sdecb": (sdecb.keywords, color.remarks, False),
-        "dragon": (dragon.keywords, dragon.remarks, True),
-        "ddos": (ddos.keywords, dragon.remarks, True),
-    }
-    disk = True
-    sopts = "b:cd" + BaseOptions.sopts
-    lopts = ["basic=", "cassette", "disk"] + BaseOptions.lopts
+    disk = None
+    isdragon = False
+    sopts = "cd" + BaseOptions.sopts
+    lopts = ["cassette", "disk"] + BaseOptions.lopts
     usage = BaseOptions.usage + [
-        '\t-b\t--basic=<dialect>\tbasic dialect\n',
         '\t-c\t--cassette\t\ttokenized cassette file\n',
         '\t-d\t--disk\t\t\ttokenized disk file (default)\n'
     ]
 
-    keywords = sdecb.keywords
-    remarks = sdecb.remarks
-    isdragon = False
+    dialect = None
+    dialects = DIALECTS
 
     def subopts(self, other):
         (o, a) = other
-        if o in ["-b", "--basic"]:
-            if a in self.DIALECTS.keys():
-                self.keywords, self.remarks, self.isdragon = self.DIALECTS[a]
-            elif a == "help":
-                print("Supported self.DIALECTS:")
-                for key in self.DIALECTS.keys():
-                    print(f'\t{key}')
-                sys.exit(0)
-            else:
-                sys.stderr.write(f'Unsupported dialect: {a}\n')
-                sys.stderr.write("--basic=help to list available dialects")
-                sys.exit(2)
-        elif o in ["-c", "--cassette"]:
+        if o in ["-c", "--cassette"]:
             self.disk = False
         elif o in ["-d", "--disk"]:
             self.disk = True
@@ -50,10 +29,15 @@ class Options(BaseOptions):
             self.unused.append(other)
 
     def post(self):
+        if self.dialect is None:
+            self.dialect = SDECB()
+        if not self.disk:
+            self.disk = self.dialect.disk
+        self.isdragon = self.dialect.dragon
         if self.address == 0x0000:
-            if self.isdragon:
+            if self.dialect.dragon:
                 self.address = 0x2401
-            elif self.disk:
+            elif self.disk or (self.disk is None and self.dialect.disk):
                 self.address = 0x2601
             else:
                 self.address = 0x25fe
@@ -61,13 +45,7 @@ class Options(BaseOptions):
 
 def tokenize(data, opts):
     # convert a parsed file into tokenized BASIC file
-    tokenized = []
-    address = opts.address
-    for line in data:
-        line_tokens = tokenize_line(line)
-        address += 2 + len(line_tokens)
-        tokenized += [address // 0x100, address & 0xff] + line_tokens
-    tokenized += [0, 0]
+    tokenized = mstokenize(data, opts) + [0, 0]
     if opts.disk and opts.isdragon:
         val = len(tokenized)
         tokenized = [0x55, 0x01, 0x24, 0x01, val // 256, val & 0xff, 0x8b, 0x8d, 0xaa] + tokenized
@@ -78,6 +56,4 @@ def tokenize(data, opts):
 
 
 if __name__ == "__main__":
-    import sys
-
     sys.stderr.write("This is a library")

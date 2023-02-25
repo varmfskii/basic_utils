@@ -1,8 +1,8 @@
-import re
 from enum import Flag, auto
 
 from msbasic.labels import gettgtlabs, renumber
-from msbasic.tokens import Token, no_ws
+from msbasic.parser import Parser
+from msbasic.tokens import Token
 from msbasic.variables import reid
 
 
@@ -11,24 +11,25 @@ class OFlags(Flag):
     Z2P = auto()
     QUOTE = auto()
     TEXTLEN = auto()
+    FIXDATA = auto()
 
 
 class Optimizer:
-    def __init__(self, parser, data=None):
+    def __init__(self, parser: Parser, data: [int] or None = None):
         self.pp = parser
         if data:
-            self.data = data
+            self.data = self.pp.parse(data)
         else:
             self.data = parser.full_parse
 
-    def no_remarks(self):
+    def no_remarks(self) -> None:
         # remove all "unnecessary" remarks
         lines = []
 
         for line in self.data:
             for tix, token in enumerate(line):
-                if token[1].upper() in self.pp.rem_kw:
-                    if tix > 0 and line[tix - 1][0] == ord(':'):
+                if token.matchkw(self.pp.specials['REM']):
+                    if tix > 0 and line[tix - 1].t == ord(':'):
                         line = line[:tix - 1]
                     else:
                         line = line[:tix]
@@ -38,7 +39,7 @@ class Optimizer:
 
         self.data = lines
 
-    def merge_lines(self, max_len=0, text_len=False):
+    def merge_lines(self, max_len: int = 0, text_len: bool = False) -> None:
         # merge lines in program together where possible to a limit of
         # maxlen (if maxlen is not 0)
         lines = []
@@ -55,7 +56,7 @@ class Optimizer:
             if not line:
                 continue
             next_len = get_len(self.pp, line, text_len=text_len)
-            if line[0][0] == Token.LABEL or 0 < max_len < old_len + 1 + next_len:
+            if line[0].islabel() or 0 < max_len < old_len + 1 + next_len:
                 if nextline:
                     lines.append(nextline)
                     line_no += 1
@@ -67,36 +68,16 @@ class Optimizer:
                     old_len += 5
             else:
                 if nextline:
-                    data_data = ''
-                    if nextline[-1][0] == Token.DATA:
-                        data_data = nextline[-1][1]
-                        nextline = nextline[:-2]
-                        if len(nextline) > 0 and nextline[-1] == (ord(':'), ':'):
-                            nextline = nextline[:-1]
-                    if line[-1][0] == Token.DATA:
-                        if data_data:
-                            data_data += ','
-                        new_data = line[-1][1]
-                        new_data = re.sub('^ *', '', new_data)
-                        data_data += new_data
-                        line = line[:-2]
-                        if len(line) > 0 and line[-1] == (ord(':'), ':'):
-                            line = line[:-1]
                     if len(nextline) > 0 and len(line) > 0:
-                        nextline += [(ord(':'), ':')]
+                        nextline.append(Token.other(':'))
                         old_len += 1
                     nextline += line
                     old_len += next_len
-                    if data_data:
-                        if len(nextline) > 1 or nextline[0][0] != Token.LABEL:
-                            nextline += [(ord(':'), ':')]
-                        nextline += [(Token.KW, self.pp.data_kw[0], self.pp.kw2code[self.pp.data_kw[0]]),
-                                     (Token.DATA, data_data)]
                 else:
                     nextline = line
                     old_len = 5 + next_len
             for token in line:
-                if token[0] == Token.KW and token[1].upper() == 'IF':
+                if token.matchkw(self.pp.specials['IF'] + self.pp.specials['DATA']):
                     lines.append(nextline)
                     line_no += 1
                     nextline = []
@@ -110,7 +91,7 @@ class Optimizer:
             lines.append(nextline)
         self.data = lines
 
-    def clean_goto(self):
+    def clean_goto(self) -> None:
         # convert "then goto" to "then" and "else goto" to "else"
         # remove "let" keyword
         rv = []
@@ -121,17 +102,18 @@ class Optimizer:
             for ix, token in enumerate(line):
                 if skip:
                     skip = False
-                elif (1 < ix < ll - 1
-                      and token[0] == Token.KW and token[1].upper() in self.pp.go_kw
-                      and line[ix + 1][0] == Token.KW and line[ix + 1][1].upper() in self.pp.to_kw
-                      and line[ix - 1][0] == Token.KW and line[ix - 1][1].upper() in self.pp.then_kw):
+                elif (1 < ix < ll - 1 and line[ix - 1].matchkw(self.pp.then_kw)
+                      and token.matchkw(self.pp.specials['GO'])
+                      and line[ix + 1].matchkw(self.pp.specials['TO'])):
                     skip = True
-                elif token[0] != Token.KW or token[1] not in self.pp.let_kw:
+                elif not (token.matchkw(self.pp.specials['LET'])
+                          or (ix > 0 and token.matchkw(self.pp.specials['GOTO'])
+                              and line[ix - 1].matchkw(self.pp.then_kw))):
                     new_line.append(token)
             rv.append(new_line)
         self.data = rv
 
-    def clean_labs(self):
+    def clean_labs(self) -> None:
         # remove all line numbers that are not used as targets
         labels = gettgtlabs(self.data)
         lines = []
@@ -139,28 +121,28 @@ class Optimizer:
         for line in self.data:
             if not line:
                 continue
-            if line[0][0] != Token.LABEL or (line[0][0] == Token.LABEL and line[0][1].upper() in labels):
+            if not line[0].islabel() or line[0].v in labels:
                 lines.append(line)
             elif len(line) > 1:
                 lines.append(line[1:])
 
         self.data = lines
 
-    def i2x(self):
+    def i2x(self) -> None:
         self.data = map2d(int2hex, self.data)
 
-    def z2p(self):
+    def z2p(self) -> None:
         self.data = map2d(zero2pt, self.data)
 
-    def trim_quote(self):
+    def trim_quote(self) -> None:
         lines = []
         for line in self.data:
-            if line[-1][0] == Token.QUOTED:
-                line[-1] = (Token.QUOTED, line[-1][1][:-1])
+            if line[-1].isquoted():
+                line[-1].r = line[-1].r[:-1]
             lines.append(line)
         self.data = lines
 
-    def opt(self, max_len=0, flags=None):
+    def opt(self, max_len: int = 0, flags: OFlags or None = None) -> None:
         if not flags:
             flags = OFlags(0)
         # pack a basic program
@@ -168,7 +150,6 @@ class Optimizer:
             self.z2p()
         if OFlags.I2X in flags:
             self.i2x()
-        self.data = no_ws(self.data)
         self.clean_labs()
         self.no_remarks()
         self.data = reid(self.pp, self.data)
@@ -178,39 +159,39 @@ class Optimizer:
         self.data = renumber(self.data, start=0, interval=1)
 
 
-def split_lines(pp, data=None):
+def split_lines(pp: Parser, data: [[Token]] or None = None) -> [[Token]]:
     if not data:
         data = pp.full_parse
     lines = []
     for line in data:
         start = 0
         for ix, field in enumerate(line):
-            if field[1].upper() in pp.rem_kw + pp.if_kw:
+            if field.matchkw(pp.specials['REM'] + pp.specials['IF']):
                 break
-            if field[0] == ord(':'):
+            if field.t == ord(':'):
                 lines.append(line[start:ix])
                 start = ix + 1
         lines.append(line[start:])
     return lines
 
 
-def get_len(pp, in_line, text_len=False):
+def get_len(pp: Parser, in_line: [Token], text_len: bool = False) -> int:
     if not in_line:
         return 0
     line = in_line
     if len(line) == 0:
         return 0
-    if line[0][0] == Token.LABEL:
+    if line[0].islabel():
         line = line[1:]
     if line and text_len:
         return len(pp.deparse_line(line))
     len_acc = 0
     for token in line:
-        if token[0] != Token.KW:
-            len_acc += len(token[1])
-        elif token[2] < 0x100:
+        if not token.iskw():
+            len_acc += len(token.r)
+        elif token.v < 0x100:
             len_acc += 1
-        elif token[2] < 0x10000:
+        elif token.v < 0x10000:
             len_acc += 2
         else:
             len_acc += 3
@@ -218,19 +199,19 @@ def get_len(pp, in_line, text_len=False):
     return len_acc
 
 
-def int2hex(token: tuple) -> tuple:
-    if token[0] == Token.NUM and 0 <= int(token[1]) < 0x10000:
-        return Token.HEX, str(f'&H{int(token[1]):X}')
+def int2hex(token: Token) -> Token:
+    if token.isdec() and 0 <= token.v < 0x10000:
+        return token.hex(f'&H{token.v:X}')
     return token
 
 
-def zero2pt(token: tuple) -> tuple:
-    if token[0] == Token.NUM and int(token[1]) == 0:
-        return Token.FLOAT, '.'
+def zero2pt(token: Token) -> Token:
+    if token.isnum() and token.v == 0:
+        return Token.float('.')
     return token
 
 
-def map2d(fn, data: [[tuple]]) -> [[tuple]]:
+def map2d(fn, data: [[Token]]) -> [[Token]]:
     rv = []
     for line in data:
         rv.append(list(map(fn, line)))

@@ -5,31 +5,30 @@ class LineNumberError(RuntimeError):
     pass
 
 
-def getlabs(data):
+def getlabs(data: [[Token]]) -> [str]:
     # get a list of valid labels (line numbers)
     labels = []
 
     for line in data:
-        if line[0][0] == Token.LABEL:
-            labels.append(line[0][1].upper())
-
+        if line[0].islabel():
+            labels.append(line[0].v)
     return labels
 
 
-def gettgtlabs(data):
+def gettgtlabs(data: [[Token]]) -> [str]:
     # get a list of labels (line numbers) used as targets
     labels = []
 
     for ix, line in enumerate(data):
         for token in line[1:]:
-            if token[0] == Token.LABEL:
-                labels.append(token[1].upper())
+            if token.islabel():
+                labels.append(token.v)
 
     labels.sort()
     return labels
 
 
-def validatelabs(data):
+def validatelabs(data: [[Token]]) -> bool:
     # check that all labels used as targets are defined
     labs = getlabs(data)
     tgtlabs = gettgtlabs(data)
@@ -48,7 +47,7 @@ def validatelabs(data):
     return False
 
 
-def renumber(data, start=10, interval=10):
+def renumber(data: [[Token]], start: int = 10, interval: int = 10) -> [[Token]]:
     # renumber a parsed BASIC program
     labels = {}
     number = start
@@ -57,13 +56,11 @@ def renumber(data, start=10, interval=10):
         raise LineNumberError('unmatched label') from None
 
     for ix, line in enumerate(data):
-        if line[0][0] == Token.LABEL:
-            labels[line[0][1].upper()] = f'{number}'
-            data[ix][0] = (Token.LABEL, f'{number}')
-        elif line[0][0] == Token.WS:
-            data[ix][0] = [(Token.LABEL, f'{number}')]
+        if line[0].islabel():
+            labels[line[0].v] = f'{number}'
+            data[ix][0] = Token.label(f'{number}')
         else:
-            data[ix] = [(Token.LABEL, f'{number}')] + data[ix]
+            data[ix] = [Token.label(f'{number}')] + data[ix]
         number += interval
         if number > 32767:
             raise LineNumberError(number) from None
@@ -72,7 +69,6 @@ def renumber(data, start=10, interval=10):
         for tix, token in enumerate(line):
             if tix == 0:
                 continue
-            if token[0] == Token.LABEL:
-                data[lix][tix] = (Token.LABEL, labels[token[1].upper()])
-
+            if token.islabel():
+                data[lix][tix] = Token.label(labels[token.v])
     return data

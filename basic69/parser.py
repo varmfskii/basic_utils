@@ -6,16 +6,24 @@ from msbasic.parser import Parser as MSParser
 
 class Parser(MSParser):
 
-    def parse(self, data: list[int], fix_data=False) -> list[list[tuple]]:
-        if data[0] < 0x80 and data[1] < 0x80:
-            self.full_parse = self.parse_txt("".join(map(chr, data)), fix_data=fix_data)
-        elif data[0] == 0xff:
-            self.full_parse = self.parse_bin(data[3:], fix_data=fix_data)
-        elif data[0] == 0x55:
-            self.full_parse = self.parse_bin(data[9:], fix_data=fix_data)
+    def parse(self, data: [int], fix_data=False, onepass=False) -> [[tuple[int, str] or tuple[int, str, int]]]:
+        if data[0] == 0xff:  # decb
+            self.full_parse = self.kws_bin(data[3:])
+        elif data[0] == 0x55:  # ddos
+            self.full_parse = self.kws_bin(data[9:])
         else:
-            self.full_parse = self.parse_bin(data, fix_data=fix_data)
-        return self.full_parse
+            binary = False
+            for d in data:
+                if d == 0:
+                    binary = True
+                    break
+            if binary:
+                self.full_parse = self.kws_bin(data)
+            else:
+                self.full_parse = self.kws_txt(data)
+        if onepass:
+            return self.full_parse
+        return self.get_tokens(fix_data=fix_data)
 
 
 if __name__ == "__main__":

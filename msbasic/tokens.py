@@ -1,49 +1,197 @@
+import re
 from enum import Enum
 
+from msbasic.options import Options
 
-class Token(Enum):
+
+class TokenType(Enum):
     NONE = 256
     LABEL = 257
-    TOKEN = 258
-    ID = 259
-    STR = 260
-    ARR = 261
+    KW = 258
+    NUMVAR = 259
+    STRVAR = 260
+    NUMARR = 261
     STRARR = 262
     QUOTED = 263
     REM = 264
     DATA = 265
-    NUM = 266
+    DEC = 266
     HEX = 267
     FLOAT = 268
     WS = 269
-    KW = 270
 
     def __repr__(self):
         return self.name
 
 
-def tokenize_line(line, be=True):
+class Token:
+    t: TokenType
+    r: str
+    v: any
+
+    def __init__(self, t=None, r=None, v=None, m=None):
+        self.t = t
+        self.r = r
+        self.v = v
+        self.kw2code = m
+
+    @staticmethod
+    def none(v: str):
+        return Token(TokenType.NONE, v, re.sub(' ', '', v).upper())
+
+    def none_append(self, v: str):
+        self.r += v
+        self.v += re.sub(' ', '', v).upper()
+
+    def isnone(self):
+        return self.t == TokenType.NONE
+
+    @staticmethod
+    def label(v: str):
+        return Token(TokenType.LABEL, v, re.sub(' ', '', v).upper())
+
+    def islabel(self):
+        return self.t == TokenType.LABEL
+
+    def kw(self, v: str):
+        v = v.upper()
+        return Token(TokenType.KW, v, self.kw2code[v])
+
+    def iskw(self):
+        return self.t == TokenType.KW
+
+    def matchkw(self, v: [str]):
+        return self.t == TokenType.KW and self.r in v
+
+    @staticmethod
+    def numvar(v: str):
+        return Token(TokenType.NUMVAR, v, re.sub(' ', '', v).upper())
+
+    def isnumvar(self):
+        return self.t == TokenType.NUMVAR
+
+    @staticmethod
+    def strvar(v: str):
+        return Token(TokenType.STRVAR, v, re.sub(' ', '', v).upper())
+
+    def isstrvar(self):
+        return self.t == TokenType.STRVAR
+
+    @staticmethod
+    def numarr(v: str):
+        return Token(TokenType.NUMARR, v, re.sub(' ', '', v).upper())
+
+    def isnumarr(self):
+        return self.t == TokenType.NUMARR
+
+    @staticmethod
+    def strarr(v: str):
+        return Token(TokenType.STRARR, v, re.sub(' ', '', v).upper())
+
+    def isstrarr(self):
+        return self.t == TokenType.STRARR
+
+    def isvar(self):
+        return self.t in [TokenType.NUMARR, TokenType.NUMVAR, TokenType.STRARR, TokenType.STRVAR]
+
+    @staticmethod
+    def quoted(v: str):
+        return Token(TokenType.QUOTED, v, v[1:-1])
+
+    def isquoted(self):
+        return self.t == TokenType.QUOTED
+
+    @staticmethod
+    def rem(v: str):
+        return Token(TokenType.REM, v, None)
+
+    def isrem(self):
+        return self.t == TokenType.REM
+
+    @staticmethod
+    def data(v: str):
+        return Token.data_list(split_data(v))
+
+    @staticmethod
+    def data_list(d: [str]):
+        return Token(TokenType.DATA, ','.join(d), d)
+
+    def isdata(self):
+        return self.t == TokenType.DATA
+
+    @staticmethod
+    def dec(v: str):
+        return Token(TokenType.DEC, v, int(v))
+
+    def isdec(self):
+        return self.t == TokenType.DEC
+
+    @staticmethod
+    def hex(v: str):
+        return Token(TokenType.HEX, v, int(v[2:], 16))
+
+    def ishex(self):
+        return self.t == TokenType.HEX
+
+    def isint(self):
+        return self.t in [TokenType.DEC, TokenType.HEX]
+
+    @staticmethod
+    def float(v: str):
+        if v == '.':
+            return Token(TokenType, '.', 0)
+        else:
+            return Token(TokenType.FLOAT, v, float(v))
+
+    def isfloat(self):
+        return self.t == TokenType.FLOAT
+
+    def isnum(self):
+        return self.t in [TokenType.DEC, TokenType.HEX, TokenType.FLOAT]
+
+    @staticmethod
+    def ws(v: str):
+        return Token(TokenType.WS, v, None)
+
+    @staticmethod
+    def other(c: str):
+        return Token(ord(c), c, c)
+
+    def __repr__(self):
+        return f'({self.t}, {self.r}, {self.v})'
+
+
+def tokenize(data: [[tuple[int, str] or tuple[int, str, int]]], opts: Options, be=True) -> [int]:
+    # convert a parsed file into tokenized BASIC file
+    address = opts.address
+    tokenized = []
+    for line in data:
+        line_tokens = tokenize_line(line, be=be)
+        address += 2 + len(line_tokens)
+        if be:
+            tokenized += [address // 0x0100, address & 0xff] + line_tokens
+        else:
+            tokenized += [address & 0xff, address // 0x0100] + line_tokens
+    return tokenized
+
+
+def tokenize_line(line: [Token], be=True) -> [int]:
     # convert a parsed line into the tokenized format for a BASIC file
-    val = int(line[0][1])
+    val = int(line[0].r)
     if be:
         tokens = [val // 256, val & 0xff]
     else:
         tokens = [val & 0xff, val // 256]
     for token in line[1:]:
-        if token[0] in [Token.QUOTED, Token.REM, Token.DATA]:
-            # explicit text
-            for char in token[1]:
+        if not token.iskw():
+            for char in token.r:
                 tokens.append(ord(char))
-        elif token[0] != Token.KW:
-            # code text, interpreter only recognizes uppercase
-            for char in token[1]:
-                tokens.append(ord(char))
-        elif token[2] < 0x100:  # tokenized keyword
-            tokens.append(token[2])
-        elif token[2] < 0x10000:  # tokenized extended keyword
-            tokens += [token[2] // 256, token[2] & 0xff]
+        elif token.v < 0x100:  # tokenized keyword
+            tokens.append(token.v)
+        elif token.v < 0x10000:  # tokenized extended keyword
+            tokens += [token.v // 256, token.v & 0xff]
         else:  # three byte keyword
-            tokens += [token[2] // 0x10000, (token[2] // 0x100) & 0xff, token[2] & 0xff]
+            tokens += [token.v // 0x10000, (token.v // 0x100) & 0xff, token.v & 0xff]
     tokens.append(0)
     return tokens
 
@@ -93,13 +241,26 @@ def detokenize_body(data, pp, be=True):
     return pp, listing
 
 
-def no_ws(data: list[list[tuple]]) -> list[list[tuple]]:
-    rv = []
-    for line in data:
-        new_line = []
-        for token in line:
-            if token[0] != Token.WS:
-                new_line.append(token)
-        if new_line:
-            rv.append(new_line)
-    return rv
+def split_data(s: str) -> [str]:
+    d = []
+    n = ''
+    inquote = False
+    for c in s:
+        if inquote or c != ',':
+            n += c
+        else:
+            while n[0] == ' ':
+                n = n[1:]
+            while n[-1] == ' ':
+                n = n[:-1]
+            d.append(n)
+            n = ''
+        if c == '"':
+            inquote = not inquote
+    if d or n:
+        while n[0] == ' ':
+            n = n[1:]
+        while n[-1] == ' ':
+            n = n[:-1]
+        d.append(n)
+    return d
