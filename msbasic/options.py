@@ -1,8 +1,6 @@
 import getopt
 import sys
 
-from applesoft import Applesoft
-
 
 class Options:
     sopts = "a:hi:o:"
@@ -11,7 +9,7 @@ class Options:
     oname: str = None
     unused: [tuple[str, str]] = []
     address = 0
-    dialects = {'apple': Applesoft}
+    dialects = {}
     usage = [
         '\t-a\t--address=<addy>\t\tstarting address\n',
         '\t-h\t--help\t\t\tthis help\n',
