@@ -176,8 +176,11 @@ def helpfn(program):
     else:
         fh = sys.stderr
         fh.write(f'Error: No function specified\n')
+
+    usage = Options.usage
+    usage.sort()
+    fh.write(f'Usage: {sys.argv[0]} <function> <options> <infile> [<outfile>]\n')
     fh.write(
-        "Usage: {sys.argv[0]} <function> <options> <infile> [<outfile>]\n"
         "\nFunctions:\n"
         "\thelp\t\tprint this help message\n"
         "\tdetokenize\tconvert to a text file\n"
@@ -187,14 +190,9 @@ def helpfn(program):
         "\ttokenize\tconvert to tokenized form\n"
         "\tunpack\t\tsplit lines and insert whitespace\n"
         "\nCommon Options:\n"
-        "\t-a<a>\t--address=<addy>\tStarting memory address\n"
-        "\t-b<d>\t--basic=<dialect\tBASIC dialect\n"
-        "\t-c\t--cassette\t\tCassette file format\n"
-        "\t-d\t--disk\t\t\tDisk file format\n"
-        "\t-h\t--help\t\t\tHelp message\n"
-        "\t-i<n>\t--input=<file>\t\tinput file\n"
-        "\t-o<n>\t--output=<file>\t\toutput file\n"
     )
+    for line in usage:
+        fh.write(line)
 
 
 if __name__ == "__main__":

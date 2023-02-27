@@ -11,7 +11,7 @@ class Options:
     address = 0
     dialects = {}
     usage = [
-        '\t-a\t--address=<addy>\t\tstarting address\n',
+        '\t-a\t--address=<addy>\tstarting address\n',
         '\t-h\t--help\t\t\tthis help\n',
         '\t-i<n>\t--input=<file>\t\tinput file\n',
         '\t-o<n>\t--output=<file>\t\toutput file\n',
