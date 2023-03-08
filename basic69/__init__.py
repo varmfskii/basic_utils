@@ -31,13 +31,13 @@ class Options(BaseOptions):
     def post(self):
         if self.dialect is None:
             self.dialect = SDECB()
-        if not self.disk:
+        if self.disk is None:
             self.disk = self.dialect.disk
         self.isdragon = self.dialect.dragon
         if self.address == 0x0000:
             if self.dialect.dragon:
                 self.address = 0x2401
-            elif self.disk or (self.disk is None and self.dialect.disk):
+            elif self.disk:
                 self.address = 0x2601
             else:
                 self.address = 0x25fe
