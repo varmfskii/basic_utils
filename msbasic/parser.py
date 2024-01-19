@@ -19,6 +19,7 @@ class Parser:
         self.branch_kw = self.specials['GO'] + self.specials['GOTO'] + self.specials['GOSUB']
         self.ign_kw = self.specials['TO'] + self.specials['SUB']
         self.gen = Token(m=opts.dialect.kw2code)
+        self.preserve = opts.dialect.preserve
         if data:
             self.parse(data, fix_data=fix_data, onepass=onepass)
 

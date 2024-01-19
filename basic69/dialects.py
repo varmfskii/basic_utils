@@ -43,11 +43,14 @@ extended_keywords = [
     ("TROFF", 0xB8), ("TRON", 0xB7), ("USING", 0xCD), ("VARPTR", 0xFF9D)
 ]
 
+extended_preserve = ['B', 'BF', 'G']
+
 
 class ECB(Dialect):
     id = 'Extended Color BASIC'
     keywords = color_keywords + extended_keywords
     dragon = False
+    preserve = extended_preserve
 
 
 disk_keywords = [
@@ -60,12 +63,15 @@ disk_keywords = [
     ("SAVEM", 0xd84d), ("UNLOAD", 0xDB), ("VERIFY", 0xDA), ("WRITE", 0xD9)
 ]
 
+disk_preserve = ['A', 'R']
+
 
 class DECB(Dialect):
     id = 'Disk Extended Color Basic'
     keywords = color_keywords + extended_keywords + disk_keywords
     dragon = False
     disk = True
+    preserve = disk_preserve + extended_preserve
 
 
 super_keywords = [
@@ -84,6 +90,7 @@ class SECB(Dialect):
     keywords = color_keywords + extended_keywords + super_keywords
     dragon = False
     disk = False
+    preserve = extended_preserve
 
 
 class SDECB(Dialect):
@@ -91,6 +98,7 @@ class SDECB(Dialect):
     keywords = color_keywords + extended_keywords + super_keywords + disk_keywords
     dragon = False
     disk = True
+    preserve = disk_preserve + extended_preserve
 
 
 dragon_keywords = [
@@ -124,12 +132,15 @@ dragon_keywords = [
     ("VAL", 0xFF8F), ("VARPTR", 0xFF9C), ("^", 0xC7)
 ]
 
+dragon_preserve = ['B', 'BF', 'G']
+
 
 class Dragon(Dialect):
     id = 'Dragon BASIC'
     keywords = dragon_keywords
     dragon = True
     disk = False
+    preserve = dragon_preserve
 
 
 ddos_keywords = [
@@ -144,12 +155,15 @@ ddos_keywords = [
     ("WAIT", 0xDF)
 ]
 
+ddos_preserve = ['A', 'R']
+
 
 class DDOS(Dialect):
     id = 'Dragon DOS'
     keywords = dragon_keywords + ddos_keywords
     dragon = True
     disk = True
+    preserve = ddos_preserve + dragon_preserve
 
 
 DIALECTS = {

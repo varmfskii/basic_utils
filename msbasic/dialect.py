@@ -9,6 +9,7 @@ class Dialect:
     kw2code: dict[str: int] = {}
     code2kw: dict[int: str] = {}
     kw_keys: [str] = []
+    preserve: [str] = []
 
     def __init__(self):
         for k, c in self.keywords:

@@ -56,9 +56,12 @@ def getidmap(oldids: [str], pp: Parser) -> dict[str: str]:
     newids = {}
     newid = ''
     for oldid in oldids:
-        newid = nextid(newid)
-        while newid in pp.kw2code.keys():
+        if oldid in pp.preserve:
+            newid = oldid
+        else:
             newid = nextid(newid)
+            while newid in pp.kw2code.keys() or newid in pp.preserve:
+                newid = nextid(newid)
         newids[oldid] = newid
     return newids
 
