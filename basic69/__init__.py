@@ -7,6 +7,7 @@ from .parser import Parser
 
 
 class Options(BaseOptions):
+    __version__ = 'basic69 20240122'
     disk = None
     isdragon = False
     sopts = "cd" + BaseOptions.sopts

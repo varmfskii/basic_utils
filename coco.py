@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-
+import getopt
 import sys
 
 from basic69 import Options, Parser, tokenize
 from msbasic.labels import renumber
 from msbasic.optimize import Optimizer, OFlags, split_lines
 from msbasic.variables import reid
+
+__version__ = '20240122'
 
 
 def main(program, args):
@@ -17,7 +19,8 @@ def main(program, args):
         'ri': reidfn, 'reid': reidfn,
         'rn': renumberfn, 'renum': renumberfn, 'renumber': renumberfn,
         't': tokenizefn, 'tokenize': tokenizefn,
-        'u': unpackfn, 'unpack': unpackfn
+        'u': unpackfn, 'unpack': unpackfn,
+        'v': versionfn, 'version': versionfn
     }
     if program in functions.keys():
         functions[program](args)
@@ -167,6 +170,27 @@ def unpackfn(args):
     open(opts.oname, 'w').write(pp.deparse(data, ws=ws))
 
 
+def versionfn(args):
+    lo = ["verbose"]
+    us = ["\t-v\t--verbose\n"]
+    try:
+        opts, a = getopt.getopt(args, 'v', lo)
+    except getopt.GetoptError as err:
+        print(err)
+        print(f'CoCo Basic utility version {__version__}')
+        print('Version Options:')
+        for opt in us:
+            print(opt)
+        sys.exit(2)
+
+    print(f'CoCo Basic utility version {__version__}')
+    for o, a in opts:
+        if o in ['-v', '--verbose']:
+            print(f'Parser:\t\t{Parser.__version__}')
+            print(f'Optimizer:\t{Optimizer.__version__}')
+            print(f'Options:\t{Options.__version__}')
+
+
 def helpfn(program):
     if program:
         fh = sys.stderr
@@ -189,6 +213,7 @@ def helpfn(program):
         "\trenumber\trenumber lines.\n"
         "\ttokenize\tconvert to tokenized form\n"
         "\tunpack\t\tsplit lines and insert whitespace\n"
+        "\tversion\t\tshow version information\n"
         "\nCommon Options:\n"
     )
     for line in usage:

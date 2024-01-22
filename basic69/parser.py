@@ -5,6 +5,11 @@ from msbasic.parser import Parser as MSParser
 
 
 class Parser(MSParser):
+    __version__ = 'basic69 240122'
+
+    @staticmethod
+    def version():
+        return [f'Parser:\t{Parser.__version__}']+MSParser.version()
 
     def parse(self, data: [int], fix_data=False, onepass=False) -> [[tuple[int, str] or tuple[int, str, int]]]:
         if data[0] == 0xff:  # decb

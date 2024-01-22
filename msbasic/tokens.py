@@ -25,6 +25,7 @@ class TokenType(Enum):
 
 
 class Token:
+    __version__ = 'msbasic 240122'
     t: TokenType
     r: str
     v: any
@@ -34,6 +35,10 @@ class Token:
         self.r = r
         self.v = v
         self.kw2code = m
+
+    @staticmethod
+    def version():
+        return [f'Token:\t{Token.__version__}']
 
     @staticmethod
     def none(v: str):

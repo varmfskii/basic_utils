@@ -3,6 +3,7 @@ import sys
 
 
 class Options:
+    __version__ = 'msbasic 240122'
     sopts = "a:hi:o:"
     lopts = ['address', "help", "input=", "output="]
     iname: str = None
@@ -17,6 +18,10 @@ class Options:
         '\t-o<n>\t--output=<file>\t\toutput file\n',
     ]
     keywords: [tuple[str, int]]
+
+    @staticmethod
+    def version():
+        return [f'Options:\t{Options.__version__}']
 
     def __init__(self, args: [str], sopts='', lopts: [str] = None, usage: [str] = None, ext='bas'):
         # parse options for msbasic utils including globally available options

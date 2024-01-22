@@ -1,4 +1,5 @@
 class Dialect:
+    __version__ = 'msbasic 240122'
     keywords: tuple[str, int]
     specials = {
         'DATA': ['DATA'], 'ELSE': ['ELSE'], 'FOR': ['FOR'], 'GO': ['GO'],
@@ -10,6 +11,10 @@ class Dialect:
     code2kw: dict[int: str] = {}
     kw_keys: [str] = []
     preserve: [str] = []
+
+    @staticmethod
+    def version():
+        return [f'Dialect:\t{Dialect.__version__}']
 
     def __init__(self):
         for k, c in self.keywords:

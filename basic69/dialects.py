@@ -24,10 +24,15 @@ color_keywords = [
 
 
 class CB(Dialect):
+    __version__ = 'basic69/CB 240122'
     id = 'Color BASIC'
     keywords = color_keywords
     dragon = False
     disk = False
+
+    @staticmethod
+    def version():
+        return [f'CB:\t{CB.__version__}'] + Dialect.version()
 
 
 extended_keywords = [
@@ -47,10 +52,15 @@ extended_preserve = ['B', 'BF', 'G']
 
 
 class ECB(Dialect):
+    __version__ = 'basic69/ECB 240122'
     id = 'Extended Color BASIC'
     keywords = color_keywords + extended_keywords
     dragon = False
     preserve = extended_preserve
+
+    @staticmethod
+    def version():
+        return [f'ECB:\t{ECB.__version__}'] + Dialect.version()
 
 
 disk_keywords = [
@@ -67,11 +77,16 @@ disk_preserve = ['A', 'R']
 
 
 class DECB(Dialect):
+    __version__ = 'basic69/DECB 240122'
     id = 'Disk Extended Color Basic'
     keywords = color_keywords + extended_keywords + disk_keywords
     dragon = False
     disk = True
     preserve = disk_preserve + extended_preserve
+
+    @staticmethod
+    def version():
+        return [f'DECB:\t{DECB.__version__}'] + Dialect.version()
 
 
 super_keywords = [
@@ -86,19 +101,29 @@ super_keywords = [
 
 
 class SECB(Dialect):
+    __version__ = 'basic69/SECB 240122'
     id = 'Extended Color BASIC (CoCo 3)'
     keywords = color_keywords + extended_keywords + super_keywords
     dragon = False
     disk = False
     preserve = extended_preserve
 
+    @staticmethod
+    def version():
+        return [f'SECB:\t{SECB.__version__}'] + Dialect.version()
+
 
 class SDECB(Dialect):
+    __version__ = 'basic69/SDECB 240122'
     id = 'Disk Extended Color (CoCo 3)'
     keywords = color_keywords + extended_keywords + super_keywords + disk_keywords
     dragon = False
     disk = True
     preserve = disk_preserve + extended_preserve
+
+    @staticmethod
+    def version():
+        return [f'SDECB:\t{SDECB.__version__}'] + Dialect.version()
 
 
 dragon_keywords = [
@@ -136,11 +161,16 @@ dragon_preserve = ['B', 'BF', 'G']
 
 
 class Dragon(Dialect):
+    __version__ = 'basic69/Dragon 240122'
     id = 'Dragon BASIC'
     keywords = dragon_keywords
     dragon = True
     disk = False
     preserve = dragon_preserve
+
+    @staticmethod
+    def version():
+        return [f'Dragon:\t{Dragon.__version__}'] + Dialect.version()
 
 
 ddos_keywords = [
@@ -159,11 +189,16 @@ ddos_preserve = ['A', 'R']
 
 
 class DDOS(Dialect):
+    __version__ = 'basic69/DDOS 240122'
     id = 'Dragon DOS'
     keywords = dragon_keywords + ddos_keywords
     dragon = True
     disk = True
     preserve = ddos_preserve + dragon_preserve
+
+    @staticmethod
+    def version():
+        return [f'DDOS:\t{DDOS.__version__}'] + Dialect.version()
 
 
 DIALECTS = {

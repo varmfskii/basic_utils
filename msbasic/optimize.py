@@ -15,6 +15,12 @@ class OFlags(Flag):
 
 
 class Optimizer:
+    __version__ = 'msbasic 240122'
+
+    @staticmethod
+    def version():
+        return [f'Optimizer:\t{Optimizer.__version__}']
+
     def __init__(self, parser: Parser, data: [int] or None = None):
         self.pp = parser
         if data:

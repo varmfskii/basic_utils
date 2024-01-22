@@ -6,8 +6,13 @@ from msbasic.tokens import Token, TokenType
 
 
 class Parser:
+    __version__ = 'msbasic 240122'
     spacer = list('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"')
     full_parse = None
+
+    @staticmethod
+    def version():
+        return [f'Parser:\t{Parser.__version__}']
 
     def __init__(self, opts: Options, data: [int] or None = None, be=True, fix_data=False, onepass=False):
         self.be = be
